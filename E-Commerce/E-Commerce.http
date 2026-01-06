@@ -1,0 +1,6 @@
+@E_Commerce_HostAddress = https://localhost:7195/api
+
+GET {{E_Commerce_HostAddress}}/Category
+Accept: application/json
+
+###
