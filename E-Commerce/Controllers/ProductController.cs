@@ -16,21 +16,13 @@ namespace E_Commerce.Controllers
             _service = service;
         }
 
-        [HttpGet]
-        public async Task<ActionResult> GetAll([FromQuery]int pageNumber = 1 , [FromQuery]int pageSize = 10)
+        [HttpGet] 
+        public async Task<ActionResult> GetAll([FromQuery]int pageNumber = 1 , [FromQuery]int pageSize = 20)
         {
-            if(pageSize <= 0 )
-                pageSize = 10;
-
-            if(pageSize > 50) 
-                pageSize = 50;
-
-            if (pageNumber <= 0)
-                pageNumber = 1;
 
             var products = await _service.GetAll(pageNumber, pageSize);
 
-            return Ok(products);
+            return Ok(products); 
         }
 
         [HttpGet("{id}")]
@@ -54,14 +46,28 @@ namespace E_Commerce.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(Guid id, InputProductDto productDto)
         {
-            await _service.UpdateAsync(id, productDto);
+            var result = await _service.UpdateAsync(id, productDto);
+
+            if (!result.Succeeded)
+            {
+                if (result.Message!.Contains("not found") && result.Message.Contains("Product"))
+                {
+                    return NotFound(new { message = result.Message });
+                }
+
+                return BadRequest(new { message = result.Message });
+            }
+
             return NoContent();
         }
 
         [HttpDelete]
         public async Task<ActionResult> Delete(Guid id)
         {
-            await _service.DeleteAsync(id);
+            var result = await _service.DeleteAsync(id);
+            if (!result.Succeeded)
+                return NotFound(new { message = result.Message });
+
             return NoContent();
         }
 

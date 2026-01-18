@@ -15,6 +15,7 @@
         public Category Category { get; set; }
         public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }

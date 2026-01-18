@@ -1,4 +1,5 @@
-﻿using E_Commerce.DTOs.InputDtos;
+﻿using E_Commerce.DTOs;
+using E_Commerce.DTOs.InputDtos;
 using E_Commerce.DTOs.OutputDtos;
 using E_Commerce.Entities;
 using E_Commerce.Repositories;
@@ -43,15 +44,27 @@ namespace E_Commerce.Services
             return product;
         }
 
-        public async Task UpdateAsync(Guid id, InputProductDto productDto)
+        public async Task<OperationResult> UpdateAsync(Guid id, InputProductDto productDto)
         {
-            ValidateImages(productDto.Images);
+            var result = ValidateImages(productDto.Images);
+            if (!result.Succeeded)
+                return result;
 
-            var IsExistsCategory = await _categoryRepository.GetByIdAsync(productDto.CategoryId) ??
-                throw new KeyNotFoundException($"Category with ID {productDto.CategoryId} was not found.");
+            var IsExistsCategory = await _categoryRepository.GetByIdAsync(productDto.CategoryId);
+            if (IsExistsCategory == null)
+                return new OperationResult 
+                { 
+                    Succeeded = false ,
+                    Message = $"Category with ID {productDto.CategoryId} was not found." 
+                };
 
-            var product = await _repository.GetByIdAsync(id) ??
-                throw new KeyNotFoundException($"Product with ID {id} was not found.");
+            var product = await _repository.GetByIdAsync(id);
+            if (product == null)
+                return new OperationResult 
+                { 
+                    Succeeded = false , 
+                    Message = $"Product with ID {id} was not found." 
+                };
 
             product.Name = productDto.Name;
             product.Description = productDto.Description;
@@ -73,29 +86,42 @@ namespace E_Commerce.Services
 
             _repository.Update(product);
             await _repository.SaveChangesAsync();
+
+            return new OperationResult { Succeeded = true  };
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task<OperationResult> DeleteAsync(Guid id)
         {
-            var product = _repository.GetByIdAsync(id) ??
-                throw new KeyNotFoundException($"Product with ID {id} was not found.");
+            var product = await _repository.GetByIdAsync(id);
+            if (product == null)
+                return new OperationResult
+                {
+                    Succeeded = false,
+                    Message = $"Product with ID {id} was not found."
+                };
 
             await _repository.DeleteAsync(id);
             await _repository.SaveChangesAsync();
 
+            return new OperationResult { Succeeded = true };
+
         }
-        private static void ValidateImages(IEnumerable<InputProductImageDto> imgsDto)
+        private static OperationResult ValidateImages(IEnumerable<InputProductImageDto> imgsDto)
         {
-            if (!imgsDto.Any())
-                throw new InvalidOperationException("Product must have at least one image.");
+            var mainImagesCount = imgsDto.Count(i => i.IsMain);
+            var totalImages = imgsDto.Count();
 
-            if (imgsDto.Count(i => i.IsMain) == 0)
-                throw new InvalidOperationException("Product must have a main image.");
+            if (totalImages == 0)
+                return new OperationResult { Succeeded = false, Message = "Product must have at least one image." };
 
-            if (imgsDto.Count(i => i.IsMain) > 1)
-                throw new InvalidOperationException("Only one main image is allowed.");
+            if (mainImagesCount == 0)
+                return new OperationResult { Succeeded = false, Message = "Product must have a main image." };
+
+            if (mainImagesCount > 1)
+                return new OperationResult { Succeeded = false, Message = "Only one main image is allowed." };
+
+            return new OperationResult { Succeeded = true };
         }
-
 
         public async Task<OutputProductDto?> GetProductInfoByIdAsync(Guid id)
         {
@@ -134,15 +160,18 @@ namespace E_Commerce.Services
                 }).FirstOrDefaultAsync();
         }
 
-        public async Task<List<OutputProductListDto>> GetAll(int PageNumber = 1, int PageSize = 10)
+        public async Task<List<OutputProductListDto>> GetAll(int pageNumber = 1, int pageSize = 20)
         {
-            int skipNumber = (PageNumber - 1) * PageSize;
+            pageNumber = pageNumber < 1 ? 1 : pageNumber;
+            pageSize = pageSize > 100 ? 100 : pageSize;
+            pageSize = pageSize < 1 ? 20 : pageSize;
+            int skipNumber = (pageNumber - 1) * pageSize;
 
             return await _repository.Query()
                 .AsNoTracking()
                 .OrderByDescending(p => p.TotalSalesCount)
                 .Skip(skipNumber)
-                .Take(PageSize)
+                .Take(pageSize)
                 .Select(p => new OutputProductListDto
                 {
                     Id = p.Id,
