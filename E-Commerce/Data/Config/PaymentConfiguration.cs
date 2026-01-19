@@ -27,6 +27,7 @@ namespace E_Commerce.Data.Config
             builder.HasOne(p => p.Order)
               .WithOne(o => o.Payment)
               .HasForeignKey<Payment>(p => p.OrderId)
+              .OnDelete(DeleteBehavior.Cascade)
               .IsRequired(false);
         }
     }

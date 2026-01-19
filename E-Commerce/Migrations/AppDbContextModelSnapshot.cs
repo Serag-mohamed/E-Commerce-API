@@ -208,6 +208,18 @@ namespace E_Commerce.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("ReceiverPhone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShippingCity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShippingStreet")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("TotalPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -560,7 +572,8 @@ namespace E_Commerce.Migrations
                 {
                     b.HasOne("E_Commerce.Entities.Category", "ParentCategory")
                         .WithMany("Categories")
-                        .HasForeignKey("ParentCategoryId");
+                        .HasForeignKey("ParentCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ParentCategory");
                 });
@@ -570,7 +583,7 @@ namespace E_Commerce.Migrations
                     b.HasOne("E_Commerce.Entities.ApplicationUser", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -587,7 +600,7 @@ namespace E_Commerce.Migrations
                     b.HasOne("E_Commerce.Entities.Product", "Product")
                         .WithMany("OrderItems")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Order");
@@ -599,7 +612,8 @@ namespace E_Commerce.Migrations
                 {
                     b.HasOne("E_Commerce.Entities.Order", "Order")
                         .WithOne("Payment")
-                        .HasForeignKey("E_Commerce.Entities.Payment", "OrderId");
+                        .HasForeignKey("E_Commerce.Entities.Payment", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Order");
                 });
@@ -609,7 +623,7 @@ namespace E_Commerce.Migrations
                     b.HasOne("E_Commerce.Entities.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -637,7 +651,7 @@ namespace E_Commerce.Migrations
                     b.HasOne("E_Commerce.Entities.ApplicationUser", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Product");

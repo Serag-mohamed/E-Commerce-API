@@ -36,6 +36,7 @@ namespace E_Commerce.Data.Config
             builder.HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
 
         }

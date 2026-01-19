@@ -24,7 +24,8 @@ namespace E_Commerce.Data.Config
 
             builder.HasOne(a => a.User)
                 .WithMany(c => c.Addresses)
-                .HasForeignKey(a => a.UserId) 
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
         }
     }

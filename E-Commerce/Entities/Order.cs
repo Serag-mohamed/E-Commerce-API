@@ -9,6 +9,9 @@ namespace E_Commerce.Entities
         public decimal TotalPrice { get; set; }
         public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string ShippingCity { get; set; } = string.Empty;
+        public string ShippingStreet { get; set; } = string.Empty;
+        public string ReceiverPhone { get; set; } = string.Empty;
 
         public ApplicationUser User { get; set; }
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

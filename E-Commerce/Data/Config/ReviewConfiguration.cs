@@ -25,11 +25,13 @@ namespace E_Commerce.Data.Config
             builder.HasOne(r => r.User)
                 .WithMany(a => a.Reviews)
                 .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
 
             builder.HasOne(r => r.Product)
                 .WithMany(p => p.Reviews)
                 .HasForeignKey(r => r.ProductId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
 
         }

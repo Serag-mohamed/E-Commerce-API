@@ -68,7 +68,7 @@ namespace E_Commerce.Services
                     Message = $"Category with ID: {id} was not found"
                 };
 
-            await _repository.DeleteAsync(id);
+            _repository.Delete(category);
             await _repository.SaveChangesAsync();
 
             return new OperationResult

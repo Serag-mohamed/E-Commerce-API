@@ -26,9 +26,11 @@ namespace E_Commerce
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<CategoryService>();
             builder.Services.AddScoped<ProductService>();
             builder.Services.AddScoped<OrderService>();
+            builder.Services.AddScoped<CartService>();
 
 
             var app = builder.Build();

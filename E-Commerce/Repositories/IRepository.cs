@@ -8,7 +8,7 @@ namespace E_Commerce.Repositories
         Task<T?> GetByIdAsync(Guid id);
         Task AddAsync(T entity);
         void Update(T entity);
-        Task<bool> DeleteAsync(Guid id);
+        void Delete(T entity);
         void RemoveRange(IEnumerable<T> entities);
         Task SaveChangesAsync();
     }

@@ -52,18 +52,18 @@ namespace E_Commerce.Services
 
             var IsExistsCategory = await _categoryRepository.GetByIdAsync(productDto.CategoryId);
             if (IsExistsCategory == null)
-                return new OperationResult 
-                { 
-                    Succeeded = false ,
-                    Message = $"Category with ID {productDto.CategoryId} was not found." 
+                return new OperationResult
+                {
+                    Succeeded = false,
+                    Message = $"Category with ID {productDto.CategoryId} was not found."
                 };
 
             var product = await _repository.GetByIdAsync(id);
             if (product == null)
-                return new OperationResult 
-                { 
-                    Succeeded = false , 
-                    Message = $"Product with ID {id} was not found." 
+                return new OperationResult
+                {
+                    Succeeded = false,
+                    Message = $"Product with ID {id} was not found."
                 };
 
             product.Name = productDto.Name;
@@ -87,7 +87,7 @@ namespace E_Commerce.Services
             _repository.Update(product);
             await _repository.SaveChangesAsync();
 
-            return new OperationResult { Succeeded = true  };
+            return new OperationResult { Succeeded = true };
         }
 
         public async Task<OperationResult> DeleteAsync(Guid id)
@@ -100,7 +100,7 @@ namespace E_Commerce.Services
                     Message = $"Product with ID {id} was not found."
                 };
 
-            await _repository.DeleteAsync(id);
+            _repository.Delete(product);
             await _repository.SaveChangesAsync();
 
             return new OperationResult { Succeeded = true };
@@ -139,7 +139,7 @@ namespace E_Commerce.Services
                     CategoryName = p.Category != null ? p.Category.Name : "General",
 
                     Images = p.ProductImages
-                        .OrderByDescending(i => i.IsMain) 
+                        .OrderByDescending(i => i.IsMain)
                         .Select(i => new OutputProductImagesDto
                         {
                             Id = i.Id,
@@ -152,7 +152,7 @@ namespace E_Commerce.Services
                         .Select(r => new OutputReviewDto
                         {
                             Id = r.Id,
-                            UserName = r.User != null ? r.User.Name : "Guest", 
+                            UserName = r.User != null ? r.User.Name : "Guest",
                             Rate = r.Rate,
                             Comment = r.Comment,
                             ReviewDate = r.ReviewDate
@@ -191,6 +191,13 @@ namespace E_Commerce.Services
                 })
                 .ToListAsync();
         }
+        public async Task<int> GetProductCountByIdAsync(Guid productId)
+        {
+            return await _repository.Query()
+                .Where(p => p.Id == productId)
+                .Select(p => p.Quantity)
+                .FirstOrDefaultAsync();
+        }
+
     }
-    
 }

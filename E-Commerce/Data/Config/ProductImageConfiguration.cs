@@ -19,6 +19,7 @@ namespace E_Commerce.Data.Config
             builder.HasOne(pi => pi.Product)
                 .WithMany(p => p.ProductImages)
                 .HasForeignKey(p => p.ProductId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
         }
     }

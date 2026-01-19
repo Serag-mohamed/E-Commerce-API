@@ -20,6 +20,7 @@ namespace E_Commerce.Data.Config
             builder.HasOne(c => c.ParentCategory)
                 .WithMany(c => c.Categories)
                 .HasForeignKey(c => c.ParentCategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
         }
     }

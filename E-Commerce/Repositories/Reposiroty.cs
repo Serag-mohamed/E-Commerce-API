@@ -33,14 +33,9 @@ namespace E_Commerce.Repositories
             _entities.Update(entity);
         }
         
-        public async Task<bool> DeleteAsync(Guid id)
+        public void Delete(T entity)
         {
-            var entity = await _entities.FindAsync(id);
-            if (entity == null)
-                return false;
-
             _entities.Remove(entity);
-            return true;
         }
         public void RemoveRange(IEnumerable<T> entities)
         {
