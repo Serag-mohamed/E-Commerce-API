@@ -149,5 +149,10 @@ namespace E_Commerce.Services
 
             return new OperationResult { Succeeded = true, Message = $"Order status updated to {newStatus} successfully." };
         }
+        public async Task<bool> HasUserPurchasedProductAsync(string userId, Guid productId)
+        {
+            return await _unitOfWork.Repository<Order>().Query()
+                .AnyAsync(o => o.UserId == userId && o.OrderItems.Any(oi => oi.ProductId == productId) && o.OrderStatus == OrderStatus.Delivered);
+        }
     }
 }

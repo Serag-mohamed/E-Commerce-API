@@ -199,5 +199,10 @@ namespace E_Commerce.Services
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<bool> IsProductExistsAsync(Guid productId)
+        {
+            return await _repository.Query()
+                .AnyAsync(p => p.Id == productId);
+        }
     }
 }

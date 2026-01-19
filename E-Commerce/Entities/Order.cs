@@ -1,8 +1,9 @@
-﻿using E_Commerce.Enums;
+﻿using E_Commerce.Contract;
+using E_Commerce.Enums;
 
 namespace E_Commerce.Entities
 {
-    public class Order
+    public class Order : ISoftDeleteable
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string UserId { get; set; }
@@ -16,6 +17,20 @@ namespace E_Commerce.Entities
         public ApplicationUser User { get; set; }
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public Payment? Payment { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
+
+        public void Delete()
+        {
+            IsDeleted = true;
+            DeletedAt = DateTime.UtcNow;
+        }
+
+        public void UndoDelete()
+        {
+            IsDeleted = false;
+            DeletedAt = null;
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 
 using E_Commerce.Data;
 using E_Commerce.Entities;
+using E_Commerce.Interceptors;
 using E_Commerce.Middlewares;
 using E_Commerce.Repositories;
 using E_Commerce.Services;
@@ -15,7 +16,9 @@ namespace E_Commerce
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("E-Commerce")));
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("E-Commerce"))
+            .AddInterceptors(new SoftDeleteInterceptor()));
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>();
@@ -31,6 +34,7 @@ namespace E_Commerce
             builder.Services.AddScoped<ProductService>();
             builder.Services.AddScoped<OrderService>();
             builder.Services.AddScoped<CartService>();
+            builder.Services.AddScoped<ReviewService>();
 
 
             var app = builder.Build();

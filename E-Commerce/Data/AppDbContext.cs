@@ -1,7 +1,9 @@
-﻿using E_Commerce.Data.Config;
+﻿using E_Commerce.Contract;
+using E_Commerce.Data.Config;
 using E_Commerce.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace E_Commerce.Data
 {
@@ -26,6 +28,20 @@ namespace E_Commerce.Data
             base.OnModelCreating(builder);
 
             builder.ApplyConfigurationsFromAssembly(typeof(ProductConfiguration).Assembly);
+
+            foreach (var entityType in builder.Model.GetEntityTypes())
+            {
+                if (typeof(ISoftDeleteable).IsAssignableFrom(entityType.ClrType))
+                {
+                    var parameter = Expression.Parameter(entityType.ClrType, "e");
+                    var prop = Expression.Property(parameter, nameof(ISoftDeleteable.IsDeleted));
+                    var condition = Expression.Lambda(
+                        Expression.Equal(prop, Expression.Constant(false)),
+                        parameter
+                    );
+                    builder.Entity(entityType.ClrType).HasQueryFilter(condition);
+                }
+            }
         }
     }
 }
