@@ -83,6 +83,8 @@ namespace E_Commerce
             builder.Services.AddScoped<CartService>();
             builder.Services.AddScoped<ReviewService>();
             builder.Services.AddScoped<AuthService>();
+            builder.Services.AddScoped<AccountService>();
+            builder.Services.AddScoped<StatisticsService>();
 
 
             var app = builder.Build();

@@ -11,12 +11,14 @@ namespace E_Commerce.Services
         private readonly IRepository<Product> _repository;
         private readonly IRepository<ProductImage> _imageRepository;
         private readonly IRepository<Category> _categoryRepository;
+        private readonly IRepository<CartItem> _cartItemRepo;
 
-        public ProductService(IRepository<Product> repository, IRepository<ProductImage> imageRepository, IRepository<Category> categoryRepository)
+        public ProductService(IRepository<Product> repository, IRepository<ProductImage> imageRepository, IRepository<Category> categoryRepository, IRepository<CartItem> cartItemRepo)
         {
             _repository = repository;
             _imageRepository = imageRepository;
             _categoryRepository = categoryRepository;
+            _cartItemRepo = cartItemRepo;
         }
 
         public async Task<Product> AddAsync(InputProductDto productDto, string userId)
@@ -110,6 +112,8 @@ namespace E_Commerce.Services
                     Message = "Forbidden: You don't have permission to delete this product."
                 };
             _repository.Delete(product);
+            var cartItems = await _cartItemRepo.Query().Where(ci => ci.ProductId == id).ToListAsync();
+            _cartItemRepo.RemoveRange(cartItems);
             await _repository.SaveChangesAsync();
 
             return new OperationResult { Succeeded = true };
