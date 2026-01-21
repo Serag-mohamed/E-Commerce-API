@@ -33,7 +33,7 @@ namespace E_Commerce.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<OutputOrderDto>> GetOrderDetails(Guid id)
+        public async Task<ActionResult<OrderDto>> GetOrderDetails(Guid id)
         {
             var result = await _service.GetOrderDetaialsAsync(id, _userId, _isAdmin);
             if (!result.Succeeded)

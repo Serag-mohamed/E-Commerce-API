@@ -94,7 +94,7 @@ namespace E_Commerce.Services
 
             return orders;
         }
-        public async Task<OperationResult<OutputOrderDto>> GetOrderDetaialsAsync(Guid orderId, string userId, bool isAdmin)
+        public async Task<OperationResult<OrderDto>> GetOrderDetaialsAsync(Guid orderId, string userId, bool isAdmin)
         {
             var order = await _unitOfWork.Repository<Order>().Query()
                 .AsNoTracking()
@@ -104,9 +104,9 @@ namespace E_Commerce.Services
                 .FirstOrDefaultAsync(o => o.Id == orderId && isAdmin || o.UserId == userId);
 
             if (order == null)
-                return new OperationResult<OutputOrderDto> { Succeeded = false, Message = "Order not found" };
+                return new OperationResult<OrderDto> { Succeeded = false, Message = "Order not found" };
 
-            var dto = new OutputOrderDto
+            var dto = new OrderDto
             {
                 Id = order.Id,
                 OrderDate = order.CreatedAt,
@@ -125,7 +125,7 @@ namespace E_Commerce.Services
                 }).ToList()
             };
 
-            return new OperationResult<OutputOrderDto> { Succeeded = true, Data = dto };
+            return new OperationResult<OrderDto> { Succeeded = true, Data = dto };
         }
         public async Task<OperationResult> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus)
         {
