@@ -4,14 +4,14 @@ namespace E_Commerce.DTOs.InputDtos
 {
     public class InputReviewDto
     {
-        [Required(ErrorMessage = "*")]
+        [Required]
         public Guid ProductId { get; set; }
 
-        [Required(ErrorMessage = "*")]
-        [Range(1, 5, ErrorMessage = "Rate must be between 1 and 5")]
+        [Required]
+        [Range(1, 5)]
         public int Rate { get; set; }
 
-        [Required(ErrorMessage = "*")]
+        [Required]
         public string Comment { get; set; } = string.Empty;
     }
 }

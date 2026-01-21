@@ -31,7 +31,7 @@ namespace E_Commerce.Controllers
         { 
             var result = await _service.AddToCartAsync(_userId, cartDto);
             if (!result.Succeeded)
-                return BadRequest(result.Message);
+                return BadRequest(new { message = result.Message });
             return Ok(new {message = result.Message});
         }
 

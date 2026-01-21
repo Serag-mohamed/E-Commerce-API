@@ -3,10 +3,12 @@ using E_Commerce.DTOs.InputDtos;
 using E_Commerce.DTOs.OutputDtos;
 using E_Commerce.Entities;
 using E_Commerce.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_Commerce.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CategoryController : ControllerBase
@@ -17,7 +19,8 @@ namespace E_Commerce.Controllers
         {
             _service = categoryService;
         }
-          
+
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<List<OutputCategoryDto>>> GetAll()
         {
@@ -27,6 +30,7 @@ namespace E_Commerce.Controllers
             return Ok(categories);
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<OutputCategoryDto>> GetById(Guid id)
         {
@@ -36,6 +40,8 @@ namespace E_Commerce.Controllers
 
             return Ok(category);
         }
+
+        [AllowAnonymous]
         [HttpGet("{id}/products")]
         public async Task<ActionResult<OperationResult<OutputCategoryWithProductsDto>>> GetProductsByCategoryId(Guid id, int pageNumber = 1, int pageSize = 20)
         {
@@ -45,6 +51,8 @@ namespace E_Commerce.Controllers
                 return NoContent();
             return Ok(result.Data);
         }
+
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<Category>> Add(InputCategoryDto categoryDto)
         {
@@ -52,6 +60,7 @@ namespace E_Commerce.Controllers
             return CreatedAtAction(nameof(GetById), new {id = category.Id}, category);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<Category>> Update(Guid id, OutputCategoryDto categoryDto)
         {
@@ -61,6 +70,7 @@ namespace E_Commerce.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(Guid id)
         {

@@ -19,7 +19,7 @@ namespace E_Commerce.Services
             _categoryRepository = categoryRepository;
         }
 
-        public async Task<Product> AddAsync(InputProductDto productDto)
+        public async Task<Product> AddAsync(InputProductDto productDto, string userId)
         {
             ValidateImages(productDto.Images);
 
@@ -27,6 +27,7 @@ namespace E_Commerce.Services
             {
                 Name = productDto.Name,
                 Description = productDto.Description,
+                VendorId = userId,
                 Price = productDto.Price,
                 DiscountPrice = productDto.DiscountPrice,
                 Quantity = productDto.Quantity,
@@ -44,7 +45,7 @@ namespace E_Commerce.Services
             return product;
         }
 
-        public async Task<OperationResult> UpdateAsync(Guid id, InputProductDto productDto)
+        public async Task<OperationResult> UpdateAsync(Guid id, InputProductDto productDto, string userId, bool isAdmin)
         {
             var result = ValidateImages(productDto.Images);
             if (!result.Succeeded)
@@ -58,13 +59,16 @@ namespace E_Commerce.Services
                     Message = $"Category with ID {productDto.CategoryId} was not found."
                 };
 
-            var product = await _repository.GetByIdAsync(id);
+            var product = await _repository.Query().Include(p => p.ProductImages).FirstOrDefaultAsync(p => p.Id == id);
             if (product == null)
                 return new OperationResult
                 {
                     Succeeded = false,
                     Message = $"Product with ID {id} was not found."
                 };
+
+            if (!isAdmin && product.VendorId != userId)
+                return new OperationResult { Succeeded = false, Message = "Forbidden: You are not the owner of this product." };
 
             product.Name = productDto.Name;
             product.Description = productDto.Description;
@@ -73,9 +77,8 @@ namespace E_Commerce.Services
             product.Quantity = productDto.Quantity;
             product.CategoryId = productDto.CategoryId;
 
-            var oldImages = _imageRepository.Query().Where(pi => pi.ProductId == id).ToList();
-            if (oldImages.Any())
-                _imageRepository.RemoveRange(oldImages);
+            if (product.ProductImages.Any())
+                _imageRepository.RemoveRange(product.ProductImages);
 
             product.ProductImages = productDto.Images.Select(img => new ProductImage
             {
@@ -90,7 +93,7 @@ namespace E_Commerce.Services
             return new OperationResult { Succeeded = true };
         }
 
-        public async Task<OperationResult> DeleteAsync(Guid id)
+        public async Task<OperationResult> DeleteAsync(Guid id, string userId, bool isAdmin)
         {
             var product = await _repository.GetByIdAsync(id);
             if (product == null)
@@ -100,6 +103,12 @@ namespace E_Commerce.Services
                     Message = $"Product with ID {id} was not found."
                 };
 
+            if (product.VendorId != userId && !isAdmin)
+                return new OperationResult
+                {
+                    Succeeded = false,
+                    Message = "Forbidden: You don't have permission to delete this product."
+                };
             _repository.Delete(product);
             await _repository.SaveChangesAsync();
 
@@ -152,7 +161,7 @@ namespace E_Commerce.Services
                         .Select(r => new OutputReviewDto
                         {
                             Id = r.Id,
-                            UserName = r.User != null ? r.User.Name : "Guest",
+                            UserName = r.User != null ? r.User.DisplayName : "Guest",
                             Rate = r.Rate,
                             Comment = r.Comment,
                             ReviewDate = r.ReviewDate

@@ -4,11 +4,11 @@ namespace E_Commerce.DTOs.InputDtos
 {
     public class InputAddToCartDto
     {
-        [Required(ErrorMessage = "*")]
+        [Required]
         public Guid ProductId { get; set; }
 
-        [Required(ErrorMessage = "*")]
-        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
+        [Required]
+        [Range(1, int.MaxValue)]
         public int Quantity { get; set; }
     }
 }

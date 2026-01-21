@@ -15,6 +15,7 @@ namespace E_Commerce.Controllers
     {
         private readonly OrderService _service;
         private string _userId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        private bool _isAdmin => User.IsInRole("Admin");
         public OrderController(OrderService service)
         {
             _service = service;
@@ -34,7 +35,7 @@ namespace E_Commerce.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<OutputOrderDto>> GetOrderDetails(Guid id)
         {
-            var result = await _service.GetOrderDetaialsAsync(id);
+            var result = await _service.GetOrderDetaialsAsync(id, _userId, _isAdmin);
             if (!result.Succeeded)
                 return NotFound(new { message = result.Message });
 
@@ -44,13 +45,14 @@ namespace E_Commerce.Controllers
         [HttpGet("my-orders")]
         public async Task<ActionResult<List<OutputOrderSummaryDto>>> GetUserOrders()
         {
-            var result = await _service.GetUserOrdersAsync(_userId);
+            var result = await _service.GetOrdersAsync(_userId, _isAdmin);
             if (result == null)
                 return BadRequest();
 
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{orderId}/status")]
         public async Task<ActionResult> UpdateOrderStatus(Guid orderId, [FromBody] OrderStatus newStatus)
         {

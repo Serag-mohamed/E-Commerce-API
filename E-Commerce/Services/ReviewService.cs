@@ -86,13 +86,14 @@ namespace E_Commerce.Services
             return new OperationResult { Succeeded = true, Message = "Review updated successfully." };
         }
 
-        public async Task<OperationResult> DeleteReviewAsync(Guid reviewId, string userId)
+        public async Task<OperationResult> DeleteReviewAsync(Guid reviewId, string userId, bool isAdmin)
         {
             var review = await _repository.GetByIdAsync(reviewId);
             if (review == null)
                 return new OperationResult { Succeeded = false, Message = "Review not found." };
-            if (review.UserId != userId)
-                return new OperationResult { Succeeded = false, Message = "You can only delete your own reviews." };
+            if (review.UserId != userId && !isAdmin)
+                return new OperationResult { Succeeded = false, Message = "Forbidden: You don't have permission to delete this review." };
+
             _repository.Delete(review);
             await _repository.SaveChangesAsync();
             return new OperationResult { Succeeded = true, Message = "Review deleted successfully." };

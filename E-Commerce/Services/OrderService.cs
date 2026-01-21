@@ -76,11 +76,11 @@ namespace E_Commerce.Services
                 return new OperationResult<Guid> { Succeeded = false, Message = $"Checkout failed: {ex.Message}" };
             }
         }
-        public async Task<List<OutputOrderSummaryDto>> GetUserOrdersAsync(string userId)
+        public async Task<List<OutputOrderSummaryDto>> GetOrdersAsync(string userId, bool isAdmin)
         {
             var orders = await _unitOfWork.Repository<Order>().Query()
                 .AsNoTracking()
-                .Where(o => o.UserId == userId)
+                .Where(o => o.UserId == userId || isAdmin)
                 .OrderByDescending(o => o.CreatedAt)
                 .Select(o => new OutputOrderSummaryDto
                 {
@@ -94,14 +94,14 @@ namespace E_Commerce.Services
 
             return orders;
         }
-        public async Task<OperationResult<OutputOrderDto>> GetOrderDetaialsAsync(Guid orderId)
+        public async Task<OperationResult<OutputOrderDto>> GetOrderDetaialsAsync(Guid orderId, string userId, bool isAdmin)
         {
             var order = await _unitOfWork.Repository<Order>().Query()
                 .AsNoTracking()
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                     .ThenInclude(p => p.ProductImages)
-                .FirstOrDefaultAsync(o => o.Id == orderId);
+                .FirstOrDefaultAsync(o => o.Id == orderId && isAdmin || o.UserId == userId);
 
             if (order == null)
                 return new OperationResult<OutputOrderDto> { Succeeded = false, Message = "Order not found" };

@@ -13,8 +13,10 @@ namespace E_Commerce.Entities
         public int Quantity { get; set; }
         public int TotalSalesCount { get; set; } = 0;
         public Guid CategoryId { get; set; }
+        public string VendorId { get; set; } = string.Empty;
 
         public Category Category { get; set; }
+        public ApplicationUser Vendor { get; set; }
         public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();

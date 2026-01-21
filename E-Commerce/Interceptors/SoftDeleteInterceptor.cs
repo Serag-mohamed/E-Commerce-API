@@ -12,7 +12,6 @@ namespace E_Commerce.Interceptors
 
             return result;
         }
-
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync
             (
             DbContextEventData eventData,

@@ -39,6 +39,12 @@ namespace E_Commerce.Data.Config
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
 
+            builder.HasOne(p => p.Vendor)
+                .WithMany (c => c.Products)
+                .HasForeignKey(p => p.VendorId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
         }
     }
 }

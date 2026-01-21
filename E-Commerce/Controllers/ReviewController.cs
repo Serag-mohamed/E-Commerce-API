@@ -23,7 +23,7 @@ namespace E_Commerce.Controllers
         {
             var result = await _service.AddReviewAsync(_userId, reviewDto);
             if (!result.Succeeded)
-                return BadRequest(result.Message);
+                return BadRequest(new { message = result.Message });
 
             return Ok(result.Data);
         }
@@ -34,18 +34,25 @@ namespace E_Commerce.Controllers
             var result = await _service.UpdateReviewAsync(reviewId, _userId, reviewDto);
 
             if (!result.Succeeded)
-                return BadRequest(result.Message);
+                return BadRequest(new { message = result.Message });
 
-            return Ok(result.Message);
+            return Ok(new { message = result.Message });
         }
 
         [HttpDelete("{reviewId}")]
         public async Task<IActionResult> DeleteReview(Guid reviewId)
         {
-            var result = await _service.DeleteReviewAsync(reviewId, _userId);
+            bool isAdmin = User.IsInRole("Admin");
+            var result = await _service.DeleteReviewAsync(reviewId, _userId, isAdmin);
             if (!result.Succeeded)
-                return BadRequest(result.Message);
-            return Ok(result.Message);
+            {
+                if (result.Message.Contains("not found"))
+                    return NotFound(new { message = result.Message });
+                if (result.Message.Contains("permission"))
+                    return Forbid();
+                return BadRequest(new { message = result.Message });
+            }
+            return Ok(new { message = result.Message });
         }
     }
 }
