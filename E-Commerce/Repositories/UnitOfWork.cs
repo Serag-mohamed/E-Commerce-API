@@ -16,13 +16,16 @@ namespace E_Commerce.Repositories
         {
             if (_repositories == null)
                 _repositories = new Hashtable();
+
             var type = typeof(T).Name;
+
             if (!_repositories.ContainsKey(type))
             {
-                var repositoryType = typeof(Repository<T>);
-                var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(T)), _context);
+                var repositoryInstance = new Repository<T>(_context);
+
                 _repositories.Add(type, repositoryInstance);
             }
+
             return (IRepository<T>)_repositories[type]!;
         }
         public async Task<IDbContextTransaction> BeginTransactionAsync()
