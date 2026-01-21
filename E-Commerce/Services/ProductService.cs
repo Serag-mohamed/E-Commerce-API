@@ -169,7 +169,7 @@ namespace E_Commerce.Services
                 }).FirstOrDefaultAsync();
         }
 
-        public async Task<List<OutputProductListDto>> GetAll(int pageNumber = 1, int pageSize = 20)
+        public async Task<List<ProductListDto>> GetAll(int pageNumber = 1, int pageSize = 20)
         {
             pageNumber = pageNumber < 1 ? 1 : pageNumber;
             pageSize = pageSize > 100 ? 100 : pageSize;
@@ -181,7 +181,7 @@ namespace E_Commerce.Services
                 .OrderByDescending(p => p.TotalSalesCount)
                 .Skip(skipNumber)
                 .Take(pageSize)
-                .Select(p => new OutputProductListDto
+                .Select(p => new ProductListDto
                 {
                     Id = p.Id,
                     Name = p.Name,

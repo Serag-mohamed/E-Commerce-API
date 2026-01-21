@@ -18,7 +18,7 @@ namespace E_Commerce.Controllers
         }
 
         [HttpPost("Register")]
-        public async Task<ActionResult<OperationResult<string>>> Register(InputRegisterDto registerDto)
+        public async Task<ActionResult<OperationResult<string>>> Register(RegisterDto registerDto)
         {
             var result = await _service.RegisterAsync(registerDto);
             if (!result.Succeeded)

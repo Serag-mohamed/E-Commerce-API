@@ -19,7 +19,7 @@ namespace E_Commerce.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddReview([FromBody] InputReviewDto reviewDto)
+        public async Task<IActionResult> AddReview([FromBody] ReviewDto reviewDto)
         {
             var result = await _service.AddReviewAsync(_userId, reviewDto);
             if (!result.Succeeded)
@@ -29,7 +29,7 @@ namespace E_Commerce.Controllers
         }
 
         [HttpPut("{reviewId}")]
-        public async Task<IActionResult> UpdateReview(Guid reviewId, [FromBody] InputReviewDto reviewDto)
+        public async Task<IActionResult> UpdateReview(Guid reviewId, [FromBody] ReviewDto reviewDto)
         {
             var result = await _service.UpdateReviewAsync(reviewId, _userId, reviewDto);
 

@@ -1,6 +1,6 @@
 ﻿namespace E_Commerce.DTOs.OutputDtos
 {
-    public class OutputCartDto
+    public class CartDto
     {
         public List<CartItemDto> Items { get; set; } = new List<CartItemDto>();
         public decimal TotalPrice => Items.Sum(i => i.SubTotal);

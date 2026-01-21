@@ -2,7 +2,7 @@
 
 namespace E_Commerce.DTOs.InputDtos
 {
-    public class InputAddToCartDto
+    public class AddToCartDto
     {
         [Required]
         public Guid ProductId { get; set; }

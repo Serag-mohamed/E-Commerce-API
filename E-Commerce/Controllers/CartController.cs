@@ -27,7 +27,7 @@ namespace E_Commerce.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddToCart(InputAddToCartDto cartDto)
+        public async Task<ActionResult> AddToCart(AddToCartDto cartDto)
         { 
             var result = await _service.AddToCartAsync(_userId, cartDto);
             if (!result.Succeeded)
@@ -36,7 +36,7 @@ namespace E_Commerce.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult> UpdateCart(InputAddToCartDto cartDto)
+        public async Task<ActionResult> UpdateCart(AddToCartDto cartDto)
         {
             var result = await _service.UpdateCartAsync(_userId, cartDto);
             if (!result.Succeeded)

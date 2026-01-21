@@ -17,7 +17,7 @@ namespace E_Commerce.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<OperationResult<Guid>> CheckOutAsync(string userId, InputCheckoutDto checkoutDto)
+        public async Task<OperationResult<Guid>> CheckOutAsync(string userId, CheckoutDto checkoutDto)
         {
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
@@ -76,13 +76,13 @@ namespace E_Commerce.Services
                 return new OperationResult<Guid> { Succeeded = false, Message = $"Checkout failed: {ex.Message}" };
             }
         }
-        public async Task<List<OutputOrderSummaryDto>> GetOrdersAsync(string userId, bool isAdmin)
+        public async Task<List<OrderSummaryDto>> GetOrdersAsync(string userId, bool isAdmin)
         {
             var orders = await _unitOfWork.Repository<Order>().Query()
                 .AsNoTracking()
                 .Where(o => o.UserId == userId || isAdmin)
                 .OrderByDescending(o => o.CreatedAt)
-                .Select(o => new OutputOrderSummaryDto
+                .Select(o => new OrderSummaryDto
                 {
                     Id = o.Id,
                     OrderDate = o.CreatedAt,
@@ -115,7 +115,7 @@ namespace E_Commerce.Services
                 ShippingCity = order.ShippingCity,
                 ShippingStreet = order.ShippingStreet,
                 ReceiverPhone = order.ReceiverPhone,
-                OrderItems = order.OrderItems.Select(oi => new OutputOrderItemDto
+                OrderItems = order.OrderItems.Select(oi => new OrderItemDto
                 {
                     ProductId = oi.ProductId,
                     ProductName = oi.Product.Name,

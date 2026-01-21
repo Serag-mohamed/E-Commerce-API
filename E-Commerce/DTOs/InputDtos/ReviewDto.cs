@@ -2,7 +2,7 @@
 
 namespace E_Commerce.DTOs.InputDtos
 {
-    public class InputReviewDto
+    public class ReviewDto
     {
         [Required]
         public Guid ProductId { get; set; }

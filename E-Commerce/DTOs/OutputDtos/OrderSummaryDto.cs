@@ -1,6 +1,6 @@
 ﻿namespace E_Commerce.DTOs.OutputDtos
 {
-    public class OutputOrderSummaryDto
+    public class OrderSummaryDto
     {
         public Guid Id { get; set; }
         public DateTime OrderDate { get; set; }

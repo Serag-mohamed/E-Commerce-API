@@ -22,7 +22,7 @@ namespace E_Commerce.Controllers
         }
 
         [HttpPost("checkout")]
-        public async Task<ActionResult> Checkout(InputCheckoutDto checkoutDto)
+        public async Task<ActionResult> Checkout(CheckoutDto checkoutDto)
         {
             var result = await _service.CheckOutAsync(_userId, checkoutDto);
 
@@ -43,7 +43,7 @@ namespace E_Commerce.Controllers
         }
 
         [HttpGet("my-orders")]
-        public async Task<ActionResult<List<OutputOrderSummaryDto>>> GetUserOrders()
+        public async Task<ActionResult<List<OrderSummaryDto>>> GetUserOrders()
         {
             var result = await _service.GetOrdersAsync(_userId, _isAdmin);
             if (result == null)

@@ -16,7 +16,7 @@ namespace E_Commerce.Services
             _authService = authService;
         }
 
-        public async Task<OperationResult<string>> RegisterAsync(InputRegisterDto registerDto)
+        public async Task<OperationResult<string>> RegisterAsync(RegisterDto registerDto)
         {
 
             var user = new ApplicationUser

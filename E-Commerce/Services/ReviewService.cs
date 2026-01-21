@@ -19,7 +19,7 @@ namespace E_Commerce.Services
             _orderService = orderService;
         }
 
-        public async Task<OperationResult<Guid>> AddReviewAsync(string userId,InputReviewDto reviewDto)
+        public async Task<OperationResult<Guid>> AddReviewAsync(string userId,ReviewDto reviewDto)
         {
             var productExists = await _productService.IsProductExistsAsync(reviewDto.ProductId);
             if (!productExists)
@@ -66,7 +66,7 @@ namespace E_Commerce.Services
             };
         }
 
-        public async Task<OperationResult> UpdateReviewAsync(Guid reviewId, string userId, InputReviewDto reviewDto)
+        public async Task<OperationResult> UpdateReviewAsync(Guid reviewId, string userId, ReviewDto reviewDto)
         {
             var review = await _repository.GetByIdAsync(reviewId);
 

@@ -100,7 +100,7 @@ namespace E_Commerce.Services
                     ParentCategoryId = c.ParentCategoryId
                 }).FirstOrDefaultAsync();
         }
-        public async Task<OperationResult<OutputCategoryWithProductsDto>> GetProductsByCategoryIdAsync(Guid categoryId, int pageNumber = 1, int pageSize = 20)
+        public async Task<OperationResult<CategoryWithProductsDto>> GetProductsByCategoryIdAsync(Guid categoryId, int pageNumber = 1, int pageSize = 20)
         {
             pageNumber = pageNumber < 1 ? 1 : pageNumber;
             pageSize = pageSize > 100 ? 100 : pageSize;
@@ -110,7 +110,7 @@ namespace E_Commerce.Services
             var category = await _repository.Query()
                 .AsNoTracking()
                 .Where(c => c.Id == categoryId)
-                .Select(c => new OutputCategoryWithProductsDto
+                .Select(c => new CategoryWithProductsDto
                 {
                     Id = c.Id,
                     Name = c.Name,
@@ -120,7 +120,7 @@ namespace E_Commerce.Services
                         .OrderByDescending(p => p.TotalSalesCount)
                         .Skip(skipNumber)
                         .Take(pageSize)
-                        .Select(p => new OutputProductListDto
+                        .Select(p => new ProductListDto
                         {
                             Id = p.Id,
                             Name = p.Name,
@@ -139,7 +139,7 @@ namespace E_Commerce.Services
 
             if (category == null)
             {
-                return new OperationResult<OutputCategoryWithProductsDto>
+                return new OperationResult<CategoryWithProductsDto>
                 {
                     Succeeded = false,
                     Message = "Category not found",
@@ -147,7 +147,7 @@ namespace E_Commerce.Services
                 };
             }
 
-            return new OperationResult<OutputCategoryWithProductsDto>
+            return new OperationResult<CategoryWithProductsDto>
             {
                 Succeeded = true,
                 Message = "Category products retrieved successfully",

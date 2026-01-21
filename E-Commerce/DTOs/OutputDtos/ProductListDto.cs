@@ -1,6 +1,6 @@
 ﻿namespace E_Commerce.DTOs.OutputDtos
 {
-    public class OutputProductListDto
+    public class ProductListDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;

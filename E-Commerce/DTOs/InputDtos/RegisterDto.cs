@@ -2,7 +2,7 @@
 
 namespace E_Commerce.DTOs.InputDtos
 {
-    public class InputRegisterDto
+    public class RegisterDto
     {
         [Required]
         public string DisplayName { get; set; }

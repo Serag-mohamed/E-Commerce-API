@@ -43,7 +43,7 @@ namespace E_Commerce.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id}/products")]
-        public async Task<ActionResult<OperationResult<OutputCategoryWithProductsDto>>> GetProductsByCategoryId(Guid id, int pageNumber = 1, int pageSize = 20)
+        public async Task<ActionResult<OperationResult<CategoryWithProductsDto>>> GetProductsByCategoryId(Guid id, int pageNumber = 1, int pageSize = 20)
         {
             
             var result = await _service.GetProductsByCategoryIdAsync(id, pageNumber, pageSize);

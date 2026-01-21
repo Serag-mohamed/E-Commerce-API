@@ -20,7 +20,7 @@ namespace E_Commerce.Services
             _productService = productService;
         }
 
-        public async Task<OperationResult<OutputCartDto>> GetCartAsync(string userId)
+        public async Task<OperationResult<CartDto>> GetCartAsync(string userId)
         {
             var cart = await _repository.Query()
                 .Include(c => c.Items)
@@ -29,9 +29,9 @@ namespace E_Commerce.Services
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
-                return new OperationResult<OutputCartDto> { Succeeded = false, Message = "Cart not found." };
+                return new OperationResult<CartDto> { Succeeded = false, Message = "Cart not found." };
 
-            var output = new OutputCartDto
+            var output = new CartDto
             {
                 Items = cart.Items.Select(i => new CartItemDto
                 {
@@ -44,13 +44,13 @@ namespace E_Commerce.Services
                 }).ToList()
             };
 
-            return new OperationResult<OutputCartDto>
+            return new OperationResult<CartDto>
             {
                 Succeeded = true,
                 Data = output
             };
         }
-        public async Task<OperationResult> AddToCartAsync(string userId, InputAddToCartDto cartDto)
+        public async Task<OperationResult> AddToCartAsync(string userId, AddToCartDto cartDto)
         {
             var productCount = await _productService.GetProductCountByIdAsync(cartDto.ProductId);
 
@@ -92,7 +92,7 @@ namespace E_Commerce.Services
             await _repository.SaveChangesAsync();
             return new OperationResult { Succeeded = true, Message = "Item added to cart successfully." };
         }
-        public async Task<OperationResult> UpdateCartAsync(string userId, InputAddToCartDto cartDto)
+        public async Task<OperationResult> UpdateCartAsync(string userId, AddToCartDto cartDto)
         {
             var cart = await _repository.Query()
                 .Include(c => c.Items)

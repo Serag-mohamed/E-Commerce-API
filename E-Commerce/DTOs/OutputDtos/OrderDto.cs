@@ -2,7 +2,7 @@
 
 namespace E_Commerce.DTOs.OutputDtos
 {
-    public class OutputOrderDto
+    public class OrderDto
     {
         public Guid Id { get; set; }
         public DateTime OrderDate { get; set; }
@@ -11,9 +11,9 @@ namespace E_Commerce.DTOs.OutputDtos
         public string ShippingCity { get; set; } = string.Empty;
         public string ShippingStreet { get; set; } = string.Empty;
         public string ReceiverPhone { get; set; } = string.Empty;
-        public List<OutputOrderItemDto> OrderItems { get; set; } = new List<OutputOrderItemDto>();
+        public List<OrderItemDto> OrderItems { get; set; } = new List<OrderItemDto>();
     }
-    public class OutputOrderItemDto
+    public class OrderItemDto
     {
         public Guid ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
