@@ -45,10 +45,15 @@ namespace E_Commerce.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> Add(InputProductDto productDto)
         {
-            Product product = await _service.AddAsync(productDto, _userId);
+            var result = await _service.AddAsync(productDto, _userId);
+            if (!result.Succeeded)
+                return BadRequest(new { message = result.Message });
 
-            var displayedProduct = await _service.GetProductInfoByIdAsync(product.Id);
-            return CreatedAtAction(nameof(GetById), new { id = displayedProduct?.Id }, displayedProduct);
+            var displayedProduct = await _service.GetProductInfoByIdAsync(result.Data!.Id);
+            if (displayedProduct == null) 
+                return NotFound();
+
+            return CreatedAtAction(nameof(GetById), new { id = displayedProduct.Id }, displayedProduct);
         }
 
         [Authorize(Roles = "Admin,Vendor")]

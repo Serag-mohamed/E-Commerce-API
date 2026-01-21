@@ -21,8 +21,46 @@ namespace E_Commerce.Services
             _cartItemRepo = cartItemRepo;
         }
 
-        public async Task<Product> AddAsync(InputProductDto productDto, string userId)
+        public async Task<OperationResult<Product>> AddAsync(InputProductDto productDto, string userId)
         {
+            var existingProduct = await _repository.Query()
+                .IgnoreQueryFilters()
+                .Include(p => p.ProductImages)
+                .FirstOrDefaultAsync(p => p.Name == productDto.Name && p.VendorId == userId);
+
+            if (existingProduct != null)
+            {
+                if (existingProduct.IsDeleted)
+                {
+                    existingProduct.IsDeleted = false;
+                    existingProduct.DeletedAt = null;
+
+                    existingProduct.Description = productDto.Description;
+                    existingProduct.Price = productDto.Price;
+                    existingProduct.DiscountPrice = productDto.DiscountPrice;
+                    existingProduct.Quantity = productDto.Quantity;
+                    existingProduct.CategoryId = productDto.CategoryId;
+
+                    existingProduct.ProductImages.Clear();
+                    existingProduct.ProductImages = productDto.Images.Select(img => new ProductImage
+                    {
+                        ImageUrl = img.ImageUrl,
+                        IsMain = img.IsMain
+                    }).ToList();
+
+                    await _repository.SaveChangesAsync();
+
+                    return new OperationResult<Product>
+                    {
+                        Succeeded = true,
+                        Message = "Product restored and updated successfully",
+                        Data = existingProduct
+                    };
+                }
+
+                return new OperationResult<Product> { Succeeded = false, Message = "Product already exists." };
+            }
+
             ValidateImages(productDto.Images);
 
             Product product = new Product()
@@ -44,7 +82,7 @@ namespace E_Commerce.Services
             await _repository.AddAsync(product);
             await _repository.SaveChangesAsync();
 
-            return product;
+            return new OperationResult<Product> { Succeeded = true, Data = product };
         }
 
         public async Task<OperationResult> UpdateAsync(Guid id, InputProductDto productDto, string userId, bool isAdmin)

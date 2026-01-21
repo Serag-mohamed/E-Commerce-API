@@ -16,8 +16,33 @@ namespace E_Commerce.Services
             _repository = repository;
         }
 
-        public async Task<Category> AddAsync(InputCategoryDto categoryDto)
+        public async Task<OperationResult<Category>> AddAsync(InputCategoryDto categoryDto)
         {
+            var existingCategory = await _repository.Query().IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.Name == categoryDto.Name);
+            if (existingCategory != null)
+            {
+                if (existingCategory.IsDeleted)
+                {
+                    existingCategory.IsDeleted = false;
+                    existingCategory.DeletedAt = null;
+                    existingCategory.ParentCategoryId = categoryDto.ParentCategoryId;
+                    await _repository.SaveChangesAsync();
+                    return new OperationResult<Category>
+                    {
+                        Succeeded = true,
+                        Message = "The category has been successfully added",
+                        Data = existingCategory
+                    };
+                }
+
+                return new OperationResult<Category>
+                {
+                    Succeeded = false,
+                    Message = "Category already exists"
+                };
+
+            }
             Category category = new Category()
             {
                 Name = categoryDto.Name,
@@ -25,7 +50,12 @@ namespace E_Commerce.Services
             };
             await _repository.AddAsync(category);
             await _repository.SaveChangesAsync();
-            return category;
+            return new OperationResult<Category>
+            {
+                Succeeded = true,
+                Message = "The category has been successfully added",
+                Data = category
+            };
         }
          
         public async Task<OperationResult> UpdateAsync(Guid id, OutputCategoryDto categoryDto)

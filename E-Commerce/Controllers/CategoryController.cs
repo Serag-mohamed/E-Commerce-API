@@ -56,8 +56,11 @@ namespace E_Commerce.Controllers
         [HttpPost]
         public async Task<ActionResult<Category>> Add(InputCategoryDto categoryDto)
         {
-            Category category = await _service.AddAsync(categoryDto);
-            return CreatedAtAction(nameof(GetById), new {id = category.Id}, category);
+            var result = await _service.AddAsync(categoryDto);
+            if (!result.Succeeded)
+                return BadRequest(new { message = result.Message });
+
+            return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data);
         }
 
         [Authorize(Roles = "Admin")]
