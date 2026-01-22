@@ -4,7 +4,7 @@
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
 ![Clean Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-blue?style=for-the-badge)
 
-**E-Commerce API** is a full-featured backend system for online stores, built with **ASP.NET Core 8** following **Clean Architecture** principles.  
+**E-Commerce API** is a full-featured backend system for online stores, built with **ASP.NET Core 10** following **Clean Architecture** principles.  
 It provides high performance, security, and maintainable backend logic for managing products, categories, users, orders, and payments.
 
 ---
@@ -46,7 +46,7 @@ It provides high performance, security, and maintainable backend logic for manag
 ---
 
 ## 🧰 Tech Stack
-- **Framework:** ASP.NET Core 8.0  
+- **Framework:** ASP.NET Core 10.0  
 - **Language:** C#  
 - **Database:** Microsoft SQL Server  
 - **ORM:** Entity Framework Core  
@@ -59,8 +59,3 @@ It provides high performance, security, and maintainable backend logic for manag
 ### Prerequisites
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)  
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)  
-
-### Installation
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Serag-mohamed/E-Commerce-API.git
