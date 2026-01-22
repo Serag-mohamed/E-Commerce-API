@@ -36,7 +36,7 @@ The project uses **Clean Architecture** to ensure a clear separation of concerns
 ---
 
 ## 🛠 Tech Stack
-- **Framework:** ASP.NET Core 8.0  
+- **Framework:** ASP.NET Core 10.0  
 - **Language:** C#  
 - **Database:** Microsoft SQL Server  
 - **ORM:** Entity Framework Core  
@@ -50,7 +50,3 @@ The project uses **Clean Architecture** to ensure a clear separation of concerns
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)  
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)  
 
-### Installation
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Serag-mohamed/E-Commerce-API.git
