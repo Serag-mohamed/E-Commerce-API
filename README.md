@@ -5,7 +5,7 @@
 ![Clean Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-blue?style=for-the-badge)
 ![JWT](https://img.shields.io/badge/Security-JWT-red)
 
-**E-Commerce API** is a robust backend system for online stores, built with **ASP.NET Core 8.0** using **Clean Architecture** principles.  
+**E-Commerce API** is a robust backend system for online stores, built with **ASP.NET Core 10.0** using **Clean Architecture** principles.  
 It is designed for **high performance, secure operations, and maintainable backend logic**, including products, categories, users, orders, and payment management.
 
 ---
@@ -41,7 +41,7 @@ It is designed for **high performance, secure operations, and maintainable backe
 ---
 
 ## 🧰 Tech Stack & Tools
-- **Framework:** ASP.NET Core 8.0  
+- **Framework:** ASP.NET Core 10.0  
 - **Language:** C#  
 - **Database:** Microsoft SQL Server  
 - **ORM:** Entity Framework Core  
