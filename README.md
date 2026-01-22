@@ -1,29 +1,37 @@
-# 🛒 E-Commerce Web API
+# 🛒 E-Commerce RESTful Web API
 
 ![.NET](https://img.shields.io/badge/.NET%208.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
+![Clean Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-blue?style=for-the-badge)
 
-A robust and scalable E-Commerce Backend system built with **ASP.NET Core**, following **Clean Architecture** principles. The project handles complex business workflows like product management, shopping carts, and secure checkout processes.
+## 🌟 Overview
+A robust, scalable, and high-performance E-Commerce Backend system built with **ASP.NET Core**. This project is a production-ready implementation of **Clean Architecture** principles, focusing on data integrity, security, and maintainable backend logic.
+
+---
 
 ## 🏗 Architecture & Design Patterns
-This project is built using **Clean Architecture** to ensure a clear separation of concerns, maintainability, and testability.
-- **Domain Layer:** Contains entities, exceptions, and business logic.
-- **Application Layer:** Contains DTOs, Mapping, and Service interfaces.
-- **Infrastructure Layer:** Implements data access (EF Core) and external services.
-- **API Layer:** Handles HTTP requests and middlewares.
+The project follows **Clean Architecture** to ensure a clear separation of concerns:
+- **Domain Layer:** Core entities, business rules, and custom exceptions.
+- **Application Layer:** DTOs, Mapping profiles, and Service interfaces.
+- **Infrastructure Layer:** Persistence logic (EF Core), Repository implementations.
+- **API Layer:** Controllers and Middlewares.
 
 ### 🔹 Key Design Patterns:
-* **Repository Pattern & Unit of Work:** For decoupled data access and atomic transactions.
-* **Service Layer:** To encapsulate business logic and validation.
-* **Result Pattern:** To provide consistent API responses.
+* **Repository & Unit of Work:** For decoupled data access and atomic transactions.
+* **Service Layer:** Encapsulating business rules away from controllers.
+* **Result Pattern:** Providing consistent and predictable API responses.
 
-## 🚀 Technical Features
-- **Soft Delete & Restore:** Implemented for Products and Categories using **EF Core Interceptors** and **Global Query Filters**.
-- **Data Consistency:** Managed complex checkout operations using **Database Transactions**.
-- **Security:** Integrated **JWT Authentication** and Authorization.
-- **Global Error Handling:** Custom middleware to catch and format exceptions.
-- **Data Mapping:** Used **AutoMapper** (or manual mapping) to decouple Domain Entities from DTOs.
-- **Documentation:** Interactive API documentation using **Swagger (OpenAPI)**.
+---
+
+## 🚀 Key Technical Features
+- **Soft Delete & Restore:** Implemented using **EF Core Interceptors** and **Global Query Filters** to preserve data history.
+- **Database Transactions:** Ensures data consistency during complex **Checkout** processes.
+- **Security:** Integrated **JWT Authentication** and Role-based Authorization.
+- **Global Error Handling:** Custom middleware for unified exception management.
+- **Validation:** Strict business rule enforcement using **Fluent Validation** principles.
+- **Documentation:** Fully documented endpoints using **Swagger (OpenAPI)**.
+
+---
 
 ## 🛠 Tech Stack
 - **Framework:** ASP.NET Core 8.0
@@ -32,13 +40,10 @@ This project is built using **Clean Architecture** to ensure a clear separation 
 - **ORM:** Entity Framework Core
 - **Tools:** Git, Postman, Swagger
 
+---
+
 ## 📖 Getting Started
 
 ### Prerequisites
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-
-### Installation & Setup
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/Serag-mohamed/E-Commerce-API.git](https://github.com/Serag-mohamed/E-Commerce-API.git)
