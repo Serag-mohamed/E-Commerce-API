@@ -1,32 +1,30 @@
 ﻿using E_Commerce.Data;
 using Microsoft.EntityFrameworkCore.Storage;
-using System.Collections;
 
 namespace E_Commerce.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
-        private Hashtable? _repositories;
+        private Dictionary<string, object>? _repositories;  
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
         }
         public IRepository<T> Repository<T>() where T : class
         {
-            if (_repositories == null)
-                _repositories = new Hashtable();
+            _repositories ??= new Dictionary<string, object>();
 
             var type = typeof(T).Name;
 
-            if (!_repositories.ContainsKey(type))
+            if (!_repositories.TryGetValue(type, out object? value))
             {
                 var repositoryInstance = new Repository<T>(_context);
-
-                _repositories.Add(type, repositoryInstance);
+                value = repositoryInstance;
+                _repositories.Add(type, value);
             }
 
-            return (IRepository<T>)_repositories[type]!;
+            return (IRepository<T>)value!;
         }
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {

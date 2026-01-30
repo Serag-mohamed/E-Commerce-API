@@ -8,13 +8,15 @@ namespace E_Commerce.Services
 {
     public class ReviewService
     {
-        private readonly IRepository<Review> _repository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ProductService _productService;
         private readonly OrderService _orderService;
 
-        public ReviewService(IRepository<Review> repository, ProductService productService, OrderService orderService)
+        private IRepository<Review> Repository => _unitOfWork.Repository<Review>();
+
+        public ReviewService(IUnitOfWork unitOfWork, ProductService productService, OrderService orderService)
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
             _productService = productService;
             _orderService = orderService;
         }
@@ -30,7 +32,7 @@ namespace E_Commerce.Services
                     Message = "Product not found."
                 };
             }
-            var alreadyReviewed = await _repository.Query().AnyAsync(r => r.ProductId == reviewDto.ProductId && r.UserId == userId);
+            var alreadyReviewed = await Repository.Query().AnyAsync(r => r.ProductId == reviewDto.ProductId && r.UserId == userId);
             if (alreadyReviewed)
             {
                 return new OperationResult<Guid>
@@ -55,8 +57,8 @@ namespace E_Commerce.Services
                 Rate = reviewDto.Rate,
                 Comment = reviewDto.Comment
             };
-            await _repository.AddAsync(review);
-            await _repository.SaveChangesAsync();
+            await Repository.AddAsync(review);
+            await _unitOfWork.SaveChangesAsync();
 
             return new OperationResult<Guid>
             {
@@ -68,7 +70,7 @@ namespace E_Commerce.Services
 
         public async Task<OperationResult> UpdateReviewAsync(Guid reviewId, string userId, ReviewDto reviewDto)
         {
-            var review = await _repository.GetByIdAsync(reviewId);
+            var review = await Repository.GetByIdAsync(reviewId);
 
             if (review == null)
                 return new OperationResult { Succeeded = false, Message = "Review not found." };
@@ -80,22 +82,22 @@ namespace E_Commerce.Services
             review.Comment = reviewDto.Comment;
             review.ReviewDate = DateTime.UtcNow;
 
-            _repository.Update(review);
-            await _repository.SaveChangesAsync();
+            Repository.Update(review);
+            await _unitOfWork.SaveChangesAsync();
 
             return new OperationResult { Succeeded = true, Message = "Review updated successfully." };
         }
 
         public async Task<OperationResult> DeleteReviewAsync(Guid reviewId, string userId, bool isAdmin)
         {
-            var review = await _repository.GetByIdAsync(reviewId);
+            var review = await Repository.GetByIdAsync(reviewId);
             if (review == null)
                 return new OperationResult { Succeeded = false, Message = "Review not found." };
             if (review.UserId != userId && !isAdmin)
                 return new OperationResult { Succeeded = false, Message = "Forbidden: You don't have permission to delete this review." };
 
-            _repository.Delete(review);
-            await _repository.SaveChangesAsync();
+            Repository.Delete(review);
+            await _unitOfWork.SaveChangesAsync();
             return new OperationResult { Succeeded = true, Message = "Review deleted successfully." };
         }
     }

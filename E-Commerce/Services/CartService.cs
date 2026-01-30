@@ -9,20 +9,20 @@ namespace E_Commerce.Services
 {
     public class CartService
     {
-        private readonly IRepository<Cart> _repository;
-        private readonly IRepository<CartItem> _cartItemRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ProductService _productService;
 
-        public CartService(IRepository<Cart> repository, IRepository<CartItem> CartItemRepository, ProductService productService)
+        private IRepository<Cart> Repository => _unitOfWork.Repository<Cart>();
+        private IRepository<CartItem> CartItemRepository => _unitOfWork.Repository<CartItem>();
+        public CartService(IUnitOfWork unitOfWork, ProductService productService)
         {
-            _repository = repository;
-            _cartItemRepository = CartItemRepository;
+            _unitOfWork = unitOfWork;
             _productService = productService;
         }
 
         public async Task<OperationResult<CartDto>> GetCartAsync(string userId)
         {
-            var cart = await _repository.Query()
+            var cart = await Repository.Query()
                 .Include(c => c.Items)
                     .ThenInclude(i => i.Product)
                         .ThenInclude(p => p.ProductImages)
@@ -57,14 +57,14 @@ namespace E_Commerce.Services
             if (productCount == 0)
                 return new OperationResult { Succeeded = false, Message = "Product does not exist." };
 
-            var cart = await _repository.Query()
+            var cart = await Repository.Query()
                 .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
             {
                 cart = new Cart { UserId = userId };
-                await _repository.AddAsync(cart);
+                await Repository.AddAsync(cart);
             }
 
             var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == cartDto.ProductId);
@@ -89,12 +89,12 @@ namespace E_Commerce.Services
             }
 
             cart.UpdatedAt = DateTime.UtcNow;
-            await _repository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
             return new OperationResult { Succeeded = true, Message = "Item added to cart successfully." };
         }
         public async Task<OperationResult> UpdateCartAsync(string userId, AddToCartDto cartDto)
         {
-            var cart = await _repository.Query()
+            var cart = await Repository.Query()
                 .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
@@ -118,7 +118,7 @@ namespace E_Commerce.Services
                 {
                     existingItem.Quantity = cartDto.Quantity;
                     cart.UpdatedAt = DateTime.UtcNow;
-                    await _repository.SaveChangesAsync();
+                    await _unitOfWork.SaveChangesAsync();
                 }
 
                 return new OperationResult { Succeeded = true, Message = "Cart updated successfully." };
@@ -128,7 +128,7 @@ namespace E_Commerce.Services
 
         public async Task<OperationResult> RemoveFromCartAsync(string userId, Guid cartItemId)
         {
-            var item = await _repository.Query()
+            var item = await Repository.Query()
                 .Where(c => c.UserId == userId)
                 .SelectMany(c => c.Items)
                 .FirstOrDefaultAsync(i => i.Id == cartItemId);
@@ -136,26 +136,26 @@ namespace E_Commerce.Services
             if (item == null)
                 return new OperationResult { Succeeded = false, Message = "Item not found in cart." };
 
-            _cartItemRepository.Delete(item);
+            CartItemRepository.Delete(item);
 
-            var cart = await _repository.Query().FirstOrDefaultAsync(c => c.UserId == userId);
+            var cart = await Repository.Query().FirstOrDefaultAsync(c => c.UserId == userId);
             if (cart != null)
                 cart.UpdatedAt = DateTime.UtcNow;
 
-            await _cartItemRepository.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
             return new OperationResult { Succeeded = true, Message = "Item removed from cart successfully." };
         }
         public async Task<OperationResult> DeleteCartAsync(string userId)
         {
-            var cart = await _repository.Query()
+            var cart = await Repository.Query()
                 .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
             if (cart == null)
                 return new OperationResult { Succeeded = false, Message = "Cart not found." };
-            _cartItemRepository.RemoveRange(cart.Items);
-            _repository.Delete(cart);
-            await _repository.SaveChangesAsync();
+            CartItemRepository.RemoveRange(cart.Items);
+            Repository.Delete(cart);
+            await _unitOfWork.SaveChangesAsync();
             return new OperationResult { Succeeded = true, Message = "Cart deleted successfully." };
         }
     }

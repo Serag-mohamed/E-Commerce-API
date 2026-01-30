@@ -6,8 +6,8 @@
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal Price { get; set; }
-        public decimal DiscountPrice { get; set; }
-        public decimal TotalPrice => Price - DiscountPrice;
+        public decimal SalePrice { get; set; }
+        public decimal FinalPrice => SalePrice > 0 ? SalePrice : Price;
         public int Quantity { get; set; }
 
         public string CategoryName { get; set; } = string.Empty;

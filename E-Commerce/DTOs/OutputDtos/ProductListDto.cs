@@ -5,8 +5,8 @@
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
-        public decimal DiscountPrice { get; set; }
-        public decimal TotalPrice => Price - DiscountPrice;
+        public decimal SalePrice { get; set; }
+        public decimal FinalPrice => SalePrice > 0 ? SalePrice : Price;
         public string CategoryName { get; set; } = string.Empty;
 
         public string MainImageUrl { get; set; } = string.Empty;

@@ -9,16 +9,18 @@ namespace E_Commerce.Services
 {
     public class CategoryService
     {
-        private readonly IRepository<Category> _repository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CategoryService(IRepository<Category> repository) 
+        private IRepository<Category> Repository => _unitOfWork.Repository<Category>();
+
+        public CategoryService(IUnitOfWork unitOfWork) 
         {
-            _repository = repository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<OperationResult<Category>> AddAsync(InputCategoryDto categoryDto)
         {
-            var existingCategory = await _repository.Query().IgnoreQueryFilters()
+            var existingCategory = await Repository.Query().IgnoreQueryFilters()
                 .FirstOrDefaultAsync(c => c.Name == categoryDto.Name);
             if (existingCategory != null)
             {
@@ -27,7 +29,9 @@ namespace E_Commerce.Services
                     existingCategory.IsDeleted = false;
                     existingCategory.DeletedAt = null;
                     existingCategory.ParentCategoryId = categoryDto.ParentCategoryId;
-                    await _repository.SaveChangesAsync();
+
+                    Repository.Update(existingCategory);
+                    await _unitOfWork.SaveChangesAsync();
                     return new OperationResult<Category>
                     {
                         Succeeded = true,
@@ -48,8 +52,8 @@ namespace E_Commerce.Services
                 Name = categoryDto.Name,
                 ParentCategoryId = categoryDto.ParentCategoryId
             };
-            await _repository.AddAsync(category);
-            await _repository.SaveChangesAsync();
+            await Repository.AddAsync(category);
+            await _unitOfWork.SaveChangesAsync();
             return new OperationResult<Category>
             {
                 Succeeded = true,
@@ -67,7 +71,7 @@ namespace E_Commerce.Services
                     Message = "ID mismatch"
                 };
 
-            var category = await _repository.GetByIdAsync(id);
+            var category = await Repository.GetByIdAsync(id);
             if (category == null)
                 return new OperationResult
                 {
@@ -78,8 +82,8 @@ namespace E_Commerce.Services
             category.Name = categoryDto.Name;
             category.ParentCategoryId = categoryDto.ParentCategoryId;
 
-            _repository.Update(category);
-            await _repository.SaveChangesAsync();
+            Repository.Update(category);
+            await _unitOfWork.SaveChangesAsync();
 
             return new OperationResult
             {
@@ -90,7 +94,7 @@ namespace E_Commerce.Services
 
         public async Task<OperationResult> DeleteAsync(Guid id)
         {
-            var category = await _repository.GetByIdAsync(id);
+            var category = await Repository.GetByIdAsync(id);
             if (category == null)
                 return new OperationResult
                 {
@@ -98,8 +102,8 @@ namespace E_Commerce.Services
                     Message = $"Category with ID: {id} was not found"
                 };
 
-            _repository.Delete(category);
-            await _repository.SaveChangesAsync();
+            Repository.Delete(category);
+            await _unitOfWork.SaveChangesAsync();
 
             return new OperationResult
             {
@@ -109,7 +113,7 @@ namespace E_Commerce.Services
         }
         public async Task<List<OutputCategoryDto>?> GetAllAsync()
         {
-            return await _repository.Query()
+            return await Repository.Query()
                 .AsNoTracking()
                 .Select(c => new OutputCategoryDto
                 {
@@ -120,7 +124,7 @@ namespace E_Commerce.Services
         }
         public async Task<OutputCategoryDto?> GetCategoryInfoByIdAsync(Guid id)
         {
-            return await _repository.Query()
+            return await Repository.Query()
                 .AsNoTracking()
                 .Where(c => c.Id == id)
                 .Select(c => new OutputCategoryDto
@@ -137,7 +141,7 @@ namespace E_Commerce.Services
             pageSize = pageSize < 1 ? 20 : pageSize;
 
             int skipNumber = (pageNumber - 1) * pageSize;
-            var category = await _repository.Query()
+            var category = await Repository.Query()
                 .AsNoTracking()
                 .Where(c => c.Id == categoryId)
                 .Select(c => new CategoryWithProductsDto
@@ -155,7 +159,7 @@ namespace E_Commerce.Services
                             Id = p.Id,
                             Name = p.Name,
                             Price = p.Price,
-                            DiscountPrice = p.DiscountPrice,
+                            SalePrice = p.SalePrice,
                             CategoryName = p.Category.Name,
                             MainImageUrl = p.ProductImages
                                 .Where(pi => pi.IsMain)

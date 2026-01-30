@@ -8,22 +8,25 @@ namespace E_Commerce.Services
 {
     public class ProductService
     {
-        private readonly IRepository<Product> _repository;
-        private readonly IRepository<ProductImage> _imageRepository;
-        private readonly IRepository<Category> _categoryRepository;
-        private readonly IRepository<CartItem> _cartItemRepo;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ProductService(IRepository<Product> repository, IRepository<ProductImage> imageRepository, IRepository<Category> categoryRepository, IRepository<CartItem> cartItemRepo)
+        private IRepository<Product> Repository => _unitOfWork.Repository<Product>();
+        private IRepository<ProductImage> ImageRepository => _unitOfWork.Repository<ProductImage>();
+        private IRepository<Category> CategoryRepository => _unitOfWork.Repository<Category>();
+        private IRepository<CartItem> CartItemRepo => _unitOfWork.Repository<CartItem>();
+
+        public ProductService(IUnitOfWork unitOfWork)
         {
-            _repository = repository;
-            _imageRepository = imageRepository;
-            _categoryRepository = categoryRepository;
-            _cartItemRepo = cartItemRepo;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<OperationResult<Product>> AddAsync(InputProductDto productDto, string userId)
         {
-            var existingProduct = await _repository.Query()
+            var result = ValidateImages(productDto.Images);
+            if (!result.Succeeded)
+                return new OperationResult<Product> { Succeeded = false, Message = result.Message };
+
+            var existingProduct = await Repository.Query()
                 .IgnoreQueryFilters()
                 .Include(p => p.ProductImages)
                 .FirstOrDefaultAsync(p => p.Name == productDto.Name && p.VendorId == userId);
@@ -37,18 +40,18 @@ namespace E_Commerce.Services
 
                     existingProduct.Description = productDto.Description;
                     existingProduct.Price = productDto.Price;
-                    existingProduct.DiscountPrice = productDto.DiscountPrice;
+                    existingProduct.SalePrice = productDto.SalePrice;
                     existingProduct.Quantity = productDto.Quantity;
                     existingProduct.CategoryId = productDto.CategoryId;
 
-                    existingProduct.ProductImages.Clear();
+                    ImageRepository.RemoveRange(existingProduct.ProductImages);
                     existingProduct.ProductImages = productDto.Images.Select(img => new ProductImage
                     {
                         ImageUrl = img.ImageUrl,
                         IsMain = img.IsMain
                     }).ToList();
 
-                    await _repository.SaveChangesAsync();
+                    await _unitOfWork.SaveChangesAsync();
 
                     return new OperationResult<Product>
                     {
@@ -61,15 +64,13 @@ namespace E_Commerce.Services
                 return new OperationResult<Product> { Succeeded = false, Message = "Product already exists." };
             }
 
-            ValidateImages(productDto.Images);
-
-            Product product = new Product()
+            Product product = new ()
             {
                 Name = productDto.Name,
                 Description = productDto.Description,
                 VendorId = userId,
                 Price = productDto.Price,
-                DiscountPrice = productDto.DiscountPrice,
+                SalePrice = productDto.SalePrice,
                 Quantity = productDto.Quantity,
                 CategoryId = productDto.CategoryId,
                 ProductImages = productDto.Images.Select(img => new ProductImage()
@@ -79,8 +80,8 @@ namespace E_Commerce.Services
                 }).ToList()
             };
 
-            await _repository.AddAsync(product);
-            await _repository.SaveChangesAsync();
+            await Repository.AddAsync(product);
+            await _unitOfWork.SaveChangesAsync();
 
             return new OperationResult<Product> { Succeeded = true, Data = product };
         }
@@ -91,7 +92,7 @@ namespace E_Commerce.Services
             if (!result.Succeeded)
                 return result;
 
-            var IsExistsCategory = await _categoryRepository.GetByIdAsync(productDto.CategoryId);
+            var IsExistsCategory = await CategoryRepository.GetByIdAsync(productDto.CategoryId);
             if (IsExistsCategory == null)
                 return new OperationResult
                 {
@@ -99,7 +100,7 @@ namespace E_Commerce.Services
                     Message = $"Category with ID {productDto.CategoryId} was not found."
                 };
 
-            var product = await _repository.Query().Include(p => p.ProductImages).FirstOrDefaultAsync(p => p.Id == id);
+            var product = await Repository.Query().Include(p => p.ProductImages).FirstOrDefaultAsync(p => p.Id == id);
             if (product == null)
                 return new OperationResult
                 {
@@ -113,12 +114,12 @@ namespace E_Commerce.Services
             product.Name = productDto.Name;
             product.Description = productDto.Description;
             product.Price = productDto.Price;
-            product.DiscountPrice = productDto.DiscountPrice;
+            product.SalePrice = productDto.SalePrice;
             product.Quantity = productDto.Quantity;
             product.CategoryId = productDto.CategoryId;
 
             if (product.ProductImages.Any())
-                _imageRepository.RemoveRange(product.ProductImages);
+                ImageRepository.RemoveRange(product.ProductImages);
 
             product.ProductImages = productDto.Images.Select(img => new ProductImage
             {
@@ -127,15 +128,15 @@ namespace E_Commerce.Services
                 ProductId = id
             }).ToList();
 
-            _repository.Update(product);
-            await _repository.SaveChangesAsync();
+            Repository.Update(product);
+            await _unitOfWork.SaveChangesAsync();
 
             return new OperationResult { Succeeded = true };
         }
 
         public async Task<OperationResult> DeleteAsync(Guid id, string userId, bool isAdmin)
         {
-            var product = await _repository.GetByIdAsync(id);
+            var product = await Repository.GetByIdAsync(id);
             if (product == null)
                 return new OperationResult
                 {
@@ -149,10 +150,10 @@ namespace E_Commerce.Services
                     Succeeded = false,
                     Message = "Forbidden: You don't have permission to delete this product."
                 };
-            _repository.Delete(product);
-            var cartItems = await _cartItemRepo.Query().Where(ci => ci.ProductId == id).ToListAsync();
-            _cartItemRepo.RemoveRange(cartItems);
-            await _repository.SaveChangesAsync();
+            Repository.Delete(product);
+            var cartItems = await CartItemRepo.Query().Where(ci => ci.ProductId == id).ToListAsync();
+            CartItemRepo.RemoveRange(cartItems);
+            await _unitOfWork.SaveChangesAsync();
 
             return new OperationResult { Succeeded = true };
 
@@ -176,7 +177,7 @@ namespace E_Commerce.Services
 
         public async Task<OutputProductDto?> GetProductInfoByIdAsync(Guid id)
         {
-            return await _repository.Query()
+            return await Repository.Query()
                 .AsNoTracking()
                 .Where(p => p.Id == id)
                 .Select(p => new OutputProductDto
@@ -185,7 +186,7 @@ namespace E_Commerce.Services
                     Name = p.Name,
                     Description = p.Description,
                     Price = p.Price,
-                    DiscountPrice = p.DiscountPrice,
+                    SalePrice = p.SalePrice,
                     Quantity = p.Quantity,
                     CategoryName = p.Category != null ? p.Category.Name : "General",
 
@@ -218,7 +219,7 @@ namespace E_Commerce.Services
             pageSize = pageSize < 1 ? 20 : pageSize;
             int skipNumber = (pageNumber - 1) * pageSize;
 
-            return await _repository.Query()
+            return await Repository.Query()
                 .AsNoTracking()
                 .OrderByDescending(p => p.TotalSalesCount)
                 .Skip(skipNumber)
@@ -228,7 +229,7 @@ namespace E_Commerce.Services
                     Id = p.Id,
                     Name = p.Name,
                     Price = p.Price,
-                    DiscountPrice = p.DiscountPrice,
+                    SalePrice = p.SalePrice,
                     Quantity = p.Quantity,
                     CategoryName = p.Category.Name,
 
@@ -244,7 +245,7 @@ namespace E_Commerce.Services
         }
         public async Task<int> GetProductCountByIdAsync(Guid productId)
         {
-            return await _repository.Query()
+            return await Repository.Query()
                 .Where(p => p.Id == productId)
                 .Select(p => p.Quantity)
                 .FirstOrDefaultAsync();
@@ -252,7 +253,7 @@ namespace E_Commerce.Services
 
         public async Task<bool> IsProductExistsAsync(Guid productId)
         {
-            return await _repository.Query()
+            return await Repository.Query()
                 .AnyAsync(p => p.Id == productId);
         }
     }

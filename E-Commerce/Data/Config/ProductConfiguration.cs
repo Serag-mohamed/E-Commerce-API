@@ -15,17 +15,17 @@ namespace E_Commerce.Data.Config
                 .IsRequired();
 
             builder.Property(p => p.Description)
-                .HasMaxLength(500)
+                .HasMaxLength(2000)
                 .IsRequired();
 
             builder.Property(p => p.Price)
                 .HasPrecision(18,2)
                 .IsRequired();
 
-            builder.Property(p => p.DiscountPrice)
+            builder.Property(p => p.SalePrice)
                 .HasPrecision(18, 2)
                 .IsRequired();
-
+                
             builder.Property(p => p.Quantity)
                 .IsRequired();
 

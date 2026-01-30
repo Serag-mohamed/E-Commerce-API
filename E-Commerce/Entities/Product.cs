@@ -8,8 +8,8 @@ namespace E_Commerce.Entities
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal Price { get; set; }
-        public decimal DiscountPrice { get; set; }
-        public decimal TotalPrice => Price - DiscountPrice;
+        public decimal SalePrice { get; set; } = 0;
+        public decimal FinalPrice => SalePrice > 0 ? SalePrice : Price;
         public int Quantity { get; set; }
         public int TotalSalesCount { get; set; } = 0;
         public Guid CategoryId { get; set; }

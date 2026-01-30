@@ -19,52 +19,58 @@ namespace E_Commerce.Services
 
         public async Task<OperationResult<Guid>> CheckOutAsync(string userId, CheckoutDto checkoutDto)
         {
+            var address = await _unitOfWork.Repository<Address>().Query()
+                .Include(a => a.User)
+                .FirstOrDefaultAsync(a => a.Id == checkoutDto.AddressId);
+
+            if (address == null || address.UserId != userId)
+                return new OperationResult<Guid> { Succeeded = false, Message = "Invalid address." };
+
+            var cart = await _unitOfWork.Repository<Cart>().Query()
+                .Include(c => c.Items)
+                    .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (cart == null || !cart.Items.Any())
+                return new OperationResult<Guid> { Succeeded = false, Message = "Cart is empty." };
+
+            decimal calculatedTotal = 0;
+            foreach (var item in cart.Items)
+            {
+                if (item.Product.Quantity < item.Quantity)
+                    return new OperationResult<Guid>
+                    {
+                        Succeeded = false,
+                        Message = $"Insufficient stock for product {item.Product.Name}."
+                    };
+
+                calculatedTotal += item.Product.FinalPrice * item.Quantity;
+            }
+
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
-                var address = await _unitOfWork.Repository<Address>().Query()
-                    .Include(a => a.User)
-                    .FirstOrDefaultAsync(a => a.Id == checkoutDto.AddressId);
-                if (address == null || address.UserId != userId)
-                    return new OperationResult<Guid> { Succeeded = false, Message = "Invalid address." };
-
-                var cart = await _unitOfWork.Repository<Cart>().Query()
-                    .Include(c => c.Items)
-                        .ThenInclude(i => i.Product)
-                    .FirstOrDefaultAsync(c => c.UserId == userId);
-
-                if (cart == null || !cart.Items.Any())
-                    return new OperationResult<Guid> { Succeeded = false, Message = "Cart is empty." };
-
-                var order = new Order
+            var order = new Order
+            {
+                UserId = userId,
+                TotalPrice = calculatedTotal,
+                ShippingCity = address.City,
+                ShippingStreet = address.Street,
+                ReceiverPhone = address.User.PhoneNumber!,
+                OrderItems = cart.Items.Select(i => new OrderItem
                 {
-                    UserId = userId,
-                    TotalPrice = cart.Items.Sum(i => i.Product.Price * i.Quantity),
-                    ShippingCity = address.City,
-                    ShippingStreet = address.Street,
-                    ReceiverPhone = address.User.PhoneNumber!,
-                    OrderItems = cart.Items.Select(i => new OrderItem
-                    {
-                        ProductId = i.ProductId,
-                        Quantity = i.Quantity,
-                        PriceAtPurchase = i.Product.Price
-                    }).ToList()
-                };
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    PriceAtPurchase = i.Product.FinalPrice
+                }).ToList()
+            };
 
-                foreach (var item in cart.Items)
-                {
-                    if (item.Product.Quantity < item.Quantity)
-                        return new OperationResult<Guid>
-                        {
-                            Succeeded = false,
-                            Message = $"Insufficient stock for product {item.Product.Name}."
-                        };
-
-                    item.Product.Quantity -= item.Quantity;
-                }
-
+            foreach (var item in cart.Items)
+                item.Product.Quantity -= item.Quantity;
+            
                 await _unitOfWork.Repository<Order>().AddAsync(order);
                 _unitOfWork.Repository<Cart>().Delete(cart);
+
                 await _unitOfWork.SaveChangesAsync();
                 await transaction.CommitAsync();
 
