@@ -30,7 +30,7 @@ namespace E_Commerce.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DisplayName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -57,7 +57,9 @@ namespace E_Commerce.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    ParentCategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    ParentCategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -228,7 +230,9 @@ namespace E_Commerce.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ShippingCity = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ShippingStreet = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ReceiverPhone = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ReceiverPhone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -247,16 +251,25 @@ namespace E_Commerce.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    DiscountPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    SalePrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     TotalSalesCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    VendorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_AspNetUsers_VendorId",
+                        column: x => x.VendorId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Products_Categories_CategoryId",
                         column: x => x.CategoryId,
@@ -274,7 +287,9 @@ namespace E_Commerce.Migrations
                     PaymentMethod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     paymentStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     TransactionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -322,7 +337,9 @@ namespace E_Commerce.Migrations
                     OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
-                    PriceAtPurchase = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
+                    PriceAtPurchase = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -483,6 +500,11 @@ namespace E_Commerce.Migrations
                 name: "IX_Products_CategoryId",
                 table: "Products",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_VendorId",
+                table: "Products",
+                column: "VendorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_ProductId",

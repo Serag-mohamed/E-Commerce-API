@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace E_Commerce.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260121101147_end")]
-    partial class end
+    [Migration("20260131084554_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -337,12 +337,8 @@ namespace E_Commerce.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<decimal>("DiscountPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -358,6 +354,10 @@ namespace E_Commerce.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("SalePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("TotalSalesCount")
                         .ValueGeneratedOnAdd()
