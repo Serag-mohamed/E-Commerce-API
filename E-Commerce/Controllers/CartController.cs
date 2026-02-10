@@ -9,28 +9,22 @@ namespace E_Commerce.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class CartController : ControllerBase
+    public class CartController(CartService service) : ControllerBase
     {
-        private readonly CartService _service;
-
-        private string _userId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        public CartController(CartService service)
-        {
-            _service = service;
-        }
+        private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
         [HttpGet]
         public async Task<ActionResult> GetCart()
         {
-            var cart = await _service.GetCartAsync(_userId);
+            var cart = await service.GetCartAsync(UserId);
             return Ok(cart);
         }
 
         [HttpPost]
         public async Task<ActionResult> AddToCart(AddToCartDto cartDto)
         { 
-            var result = await _service.AddToCartAsync(_userId, cartDto);
-            if (!result.Succeeded)
+            var result = await service.AddToCartAsync(UserId, cartDto);
+            if (!result.IsSucceeded)
                 return BadRequest(new { message = result.Message });
             return Ok(new {message = result.Message});
         }
@@ -38,8 +32,8 @@ namespace E_Commerce.Controllers
         [HttpPut]
         public async Task<ActionResult> UpdateCart(AddToCartDto cartDto)
         {
-            var result = await _service.UpdateCartAsync(_userId, cartDto);
-            if (!result.Succeeded)
+            var result = await service.UpdateCartAsync(UserId, cartDto);
+            if (!result.IsSucceeded)
                 return BadRequest(new {message = result.Message});
             return Ok(new {message = result.Message});
         }
@@ -47,8 +41,8 @@ namespace E_Commerce.Controllers
         [HttpDelete("{productId}")]
         public async Task<ActionResult> RemoveFromCart(Guid productId)
         {
-            var result = await _service.RemoveFromCartAsync(_userId, productId);
-            if (!result.Succeeded)
+            var result = await service.RemoveFromCartAsync(UserId, productId);
+            if (!result.IsSucceeded)
                 return BadRequest(new {message = result.Message});
             return Ok(new {message = result.Message});
         }
@@ -56,8 +50,8 @@ namespace E_Commerce.Controllers
         [HttpDelete]
         public async Task<ActionResult> DeleteCart()
         {
-            var result = await _service.DeleteCartAsync(_userId);
-            if (!result.Succeeded)
+            var result = await service.DeleteCartAsync(UserId);
+            if (!result.IsSucceeded)
                 return BadRequest(new {message = result.Message});
             return Ok(new {message = result.Message});
         }

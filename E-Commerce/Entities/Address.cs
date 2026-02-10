@@ -4,12 +4,12 @@ namespace E_Commerce.Entities
     public class Address
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string UserId { get; set; }
-        public string City { get; set; } = string.Empty;
-        public string Street { get; set; } = string.Empty;
-        public string HomePositionDescription { get; set; } = string.Empty;
+        public required string UserId { get; set; } = null!;
+        public required string City { get; set; } = null!;
+        public required string Street { get; set; } = null!;
+        public string? HomePositionDescription { get; set; }
 
-        public ApplicationUser User { get; set; }
+        public ApplicationUser User { get; set; } = null!;
     }
 }
 

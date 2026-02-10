@@ -5,22 +5,22 @@ namespace E_Commerce.Entities
     public class Product : ISoftDeleteable
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public decimal Price { get; set; }
+        public required string Name { get; set; } = null!;
+        public required string Description { get; set; } = null!;
+        public required decimal Price { get; set; }
         public decimal SalePrice { get; set; } = 0;
         public decimal FinalPrice => SalePrice > 0 ? SalePrice : Price;
-        public int Quantity { get; set; }
+        public required int Quantity { get; set; }
         public int TotalSalesCount { get; set; } = 0;
-        public Guid CategoryId { get; set; }
-        public string VendorId { get; set; } = string.Empty;
+        public required Guid CategoryId { get; set; }
+        public required string VendorId { get; set; } = null!;
 
-        public Category Category { get; set; }
-        public ApplicationUser Vendor { get; set; }
-        public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
-        public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-        public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
-        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public Category Category { get; set; } = null!;
+        public ApplicationUser Vendor { get; set; } = null!;
+        public ICollection<ProductImage> ProductImages { get; set; } = [];
+        public ICollection<OrderItem> OrderItems { get; set; } = [];
+        public ICollection<CartItem> CartItems { get; set; } = [];
+        public ICollection<Review> Reviews { get; set; } = [];
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
 

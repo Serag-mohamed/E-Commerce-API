@@ -3,16 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce.Repositories
 {
-    public class Repository<T> : IRepository<T> where T : class
+    public class Repository<T>(AppDbContext context) : IRepository<T> where T : class
     {
-        protected readonly AppDbContext _context;
-        protected readonly DbSet<T> _entities;
-
-        public Repository(AppDbContext context)
-        {
-            _context = context;
-            _entities = context.Set<T>();
-        }
+        private readonly DbSet<T> _entities = context.Set<T>();
 
         public IQueryable<T> Query()
         {
@@ -39,7 +32,7 @@ namespace E_Commerce.Repositories
         }
         public void RemoveRange(IEnumerable<T> entities)
         {
-            _context.RemoveRange(entities);
+            context.RemoveRange(entities);
         }
     }
 

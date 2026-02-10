@@ -3,13 +3,13 @@
     public class ProductListDto
     {
         public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; } = null!;
         public decimal Price { get; set; }
         public decimal SalePrice { get; set; }
         public decimal FinalPrice => SalePrice > 0 ? SalePrice : Price;
-        public string CategoryName { get; set; } = string.Empty;
+        public string CategoryName { get; set; } = null!;
 
-        public string MainImageUrl { get; set; } = string.Empty;
+        public string MainImageUrl { get; set; } = null!;
 
         public double AverageRate { get; set; }
         public int ReviewsCount { get; set; }

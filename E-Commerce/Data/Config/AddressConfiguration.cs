@@ -19,8 +19,7 @@ namespace E_Commerce.Data.Config
                 .IsRequired();
 
             builder.Property(a => a.HomePositionDescription)
-                .HasMaxLength(200)
-                .IsRequired();
+                .HasMaxLength(200);
 
             builder.HasOne(a => a.User)
                 .WithMany(c => c.Addresses)

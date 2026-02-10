@@ -6,7 +6,7 @@ namespace E_Commerce.DTOs.InputDtos
     {
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; } = null!;
         public Guid? ParentCategoryId { get; set; }
     }
 }

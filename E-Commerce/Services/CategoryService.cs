@@ -1,5 +1,4 @@
-﻿using E_Commerce.DTOs;
-using E_Commerce.DTOs.InputDtos;
+﻿using E_Commerce.DTOs.InputDtos;
 using E_Commerce.DTOs.OutputDtos;
 using E_Commerce.Entities;
 using E_Commerce.Repositories;
@@ -7,16 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce.Services
 {
-    public class CategoryService
+    public class CategoryService(IUnitOfWork unitOfWork)
     {
-        private readonly IUnitOfWork _unitOfWork;
-
-        private IRepository<Category> Repository => _unitOfWork.Repository<Category>();
-
-        public CategoryService(IUnitOfWork unitOfWork) 
-        {
-            _unitOfWork = unitOfWork;
-        }
+        private IRepository<Category> Repository => unitOfWork.Repository<Category>();
 
         public async Task<OperationResult<Category>> AddAsync(InputCategoryDto categoryDto)
         {
@@ -31,10 +23,10 @@ namespace E_Commerce.Services
                     existingCategory.ParentCategoryId = categoryDto.ParentCategoryId;
 
                     Repository.Update(existingCategory);
-                    await _unitOfWork.SaveChangesAsync();
+                    await unitOfWork.SaveChangesAsync();
                     return new OperationResult<Category>
                     {
-                        Succeeded = true,
+                        IsSucceeded = true,
                         Message = "The category has been successfully added",
                         Data = existingCategory
                     };
@@ -42,7 +34,7 @@ namespace E_Commerce.Services
 
                 return new OperationResult<Category>
                 {
-                    Succeeded = false,
+                    IsSucceeded = false,
                     Message = "Category already exists"
                 };
 
@@ -53,10 +45,10 @@ namespace E_Commerce.Services
                 ParentCategoryId = categoryDto.ParentCategoryId
             };
             await Repository.AddAsync(category);
-            await _unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync();
             return new OperationResult<Category>
             {
-                Succeeded = true,
+                IsSucceeded = true,
                 Message = "The category has been successfully added",
                 Data = category
             };
@@ -67,7 +59,7 @@ namespace E_Commerce.Services
             if (id != categoryDto.Id)
                 return new OperationResult
                 {
-                    Succeeded = false,
+                    IsSucceeded = false,
                     Message = "ID mismatch"
                 };
 
@@ -75,7 +67,7 @@ namespace E_Commerce.Services
             if (category == null)
                 return new OperationResult
                 {
-                    Succeeded = false,
+                    IsSucceeded = false,
                     Message = $"Category with ID: {id} was not found"
                 };
 
@@ -83,11 +75,11 @@ namespace E_Commerce.Services
             category.ParentCategoryId = categoryDto.ParentCategoryId;
 
             Repository.Update(category);
-            await _unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync();
 
             return new OperationResult
             {
-                Succeeded = true,
+                IsSucceeded = true,
                 Message = "Category updated successfully"
             };
         }
@@ -98,16 +90,16 @@ namespace E_Commerce.Services
             if (category == null)
                 return new OperationResult
                 {
-                    Succeeded = false,
+                    IsSucceeded = false,
                     Message = $"Category with ID: {id} was not found"
                 };
 
             Repository.Delete(category);
-            await _unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync();
 
             return new OperationResult
             {
-                Succeeded = true,
+                IsSucceeded = true,
                 Message = "Category deleted successfully"
             };
         }
@@ -175,7 +167,7 @@ namespace E_Commerce.Services
             {
                 return new OperationResult<CategoryWithProductsDto>
                 {
-                    Succeeded = false,
+                    IsSucceeded = false,
                     Message = "Category not found",
                     Data = null
                 };
@@ -183,7 +175,7 @@ namespace E_Commerce.Services
 
             return new OperationResult<CategoryWithProductsDto>
             {
-                Succeeded = true,
+                IsSucceeded = true,
                 Message = "Category products retrieved successfully",
                 Data = category
             };

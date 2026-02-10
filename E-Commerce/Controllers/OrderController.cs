@@ -11,22 +11,17 @@ namespace E_Commerce.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class OrderController : ControllerBase
+    public class OrderController(OrderService service) : ControllerBase
     {
-        private readonly OrderService _service;
-        private string _userId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        private bool _isAdmin => User.IsInRole("Admin");
-        public OrderController(OrderService service)
-        {
-            _service = service;
-        }
+        private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        private bool IsAdmin => User.IsInRole("Admin");
 
         [HttpPost("checkout")]
         public async Task<ActionResult> Checkout(CheckoutDto checkoutDto)
         {
-            var result = await _service.CheckOutAsync(_userId, checkoutDto);
+            var result = await service.CheckOutAsync(UserId, checkoutDto);
 
-            if (!result.Succeeded)
+            if (!result.IsSucceeded)
                 return BadRequest(new { message = result.Message });
 
             return Ok(new { orderId = result.Data, message = "Order placed successfully!" });
@@ -35,8 +30,8 @@ namespace E_Commerce.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDto>> GetOrderDetails(Guid id)
         {
-            var result = await _service.GetOrderDetaialsAsync(id, _userId, _isAdmin);
-            if (!result.Succeeded)
+            var result = await service.GetOrderDetaialsAsync(id, UserId, IsAdmin);
+            if (!result.IsSucceeded)
                 return NotFound(new { message = result.Message });
 
             return Ok(result.Data);
@@ -45,7 +40,7 @@ namespace E_Commerce.Controllers
         [HttpGet("my-orders")]
         public async Task<ActionResult<List<OrderSummaryDto>>> GetUserOrders()
         {
-            var result = await _service.GetOrdersAsync(_userId, _isAdmin);
+            var result = await service.GetOrdersAsync(UserId, IsAdmin);
             if (result == null)
                 return BadRequest();
 
@@ -56,9 +51,9 @@ namespace E_Commerce.Controllers
         [HttpPut("{orderId}/status")]
         public async Task<ActionResult> UpdateOrderStatus(Guid orderId, [FromBody] OrderStatus newStatus)
         {
-            var result = await _service.UpdateOrderStatusAsync(orderId, newStatus);
+            var result = await service.UpdateOrderStatusAsync(orderId, newStatus);
 
-            if (!result.Succeeded)
+            if (!result.IsSucceeded)
                 return BadRequest(new { message = result.Message });
 
             return Ok(new { message = result.Message });

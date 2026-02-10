@@ -16,7 +16,7 @@ namespace E_Commerce.Data.Config
                 .HasMaxLength(50)
                 .IsRequired();
 
-            builder.Property(p => p.paymentStatus)
+            builder.Property(p => p.PaymentStatus)
                 .HasConversion<string>()
                 .HasMaxLength(50)
                 .IsRequired();

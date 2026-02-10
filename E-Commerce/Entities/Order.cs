@@ -6,16 +6,17 @@ namespace E_Commerce.Entities
     public class Order : ISoftDeleteable
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string UserId { get; set; }
-        public decimal TotalPrice { get; set; }
+        public required string UserId { get; set; } = null!;
+        public required decimal TotalPrice { get; set; }
         public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public string ShippingCity { get; set; } = string.Empty;
-        public string ShippingStreet { get; set; } = string.Empty;
-        public string ReceiverPhone { get; set; } = string.Empty;
 
-        public ApplicationUser User { get; set; }
-        public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public required string ShippingCity { get; set; } = null!;
+        public required string ShippingStreet { get; set; } = null!;
+        public required string ReceiverPhone { get; set; } = null!;
+
+        public ApplicationUser User { get; set; } = null!;
+        public ICollection<OrderItem> OrderItems { get; set; } = [];
         public Payment? Payment { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }

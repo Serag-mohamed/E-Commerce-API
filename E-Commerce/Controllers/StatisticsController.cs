@@ -8,20 +8,13 @@ namespace E_Commerce.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class StatisticsController : ControllerBase
+    public class StatisticsController(StatisticsService statisticsService) : ControllerBase
     {
-        private readonly StatisticsService _statisticsService;
-
-        public StatisticsController(StatisticsService statisticsService)
-        {
-            _statisticsService = statisticsService;
-        }
-
         [Authorize(Roles = "Admin")]
         [HttpGet("admin")]
         public async Task<IActionResult> GetAdminDashboard()
         {
-            var result = await _statisticsService.GetAdminStatsAsync();
+            var result = await statisticsService.GetAdminStatsAsync();
             return Ok(result);
         }
 
@@ -31,7 +24,7 @@ namespace E_Commerce.Controllers
         {
             var vendorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var result = await _statisticsService.GetVendorStatsAsync(vendorId!);
+            var result = await statisticsService.GetVendorStatsAsync(vendorId!);
             return Ok(result);
         }
     }

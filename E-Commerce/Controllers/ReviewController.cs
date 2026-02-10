@@ -9,20 +9,15 @@ namespace E_Commerce.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class ReviewController : ControllerBase
+    public class ReviewController(ReviewService service) : ControllerBase
     {
-        private readonly ReviewService _service;
-        private string _userId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        public ReviewController(ReviewService service)
-        {
-            _service = service;
-        }
+        private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
         [HttpPost]
         public async Task<IActionResult> AddReview([FromBody] ReviewDto reviewDto)
         {
-            var result = await _service.AddReviewAsync(_userId, reviewDto);
-            if (!result.Succeeded)
+            var result = await service.AddReviewAsync(UserId, reviewDto);
+            if (!result.IsSucceeded)
                 return BadRequest(new { message = result.Message });
 
             return Ok(result.Data);
@@ -31,9 +26,9 @@ namespace E_Commerce.Controllers
         [HttpPut("{reviewId}")]
         public async Task<IActionResult> UpdateReview(Guid reviewId, [FromBody] ReviewDto reviewDto)
         {
-            var result = await _service.UpdateReviewAsync(reviewId, _userId, reviewDto);
+            var result = await service.UpdateReviewAsync(reviewId, UserId, reviewDto);
 
-            if (!result.Succeeded)
+            if (!result.IsSucceeded)
                 return BadRequest(new { message = result.Message });
 
             return Ok(new { message = result.Message });
@@ -43,10 +38,10 @@ namespace E_Commerce.Controllers
         public async Task<IActionResult> DeleteReview(Guid reviewId)
         {
             bool isAdmin = User.IsInRole("Admin");
-            var result = await _service.DeleteReviewAsync(reviewId, _userId, isAdmin);
-            if (!result.Succeeded)
+            var result = await service.DeleteReviewAsync(reviewId, UserId, isAdmin);
+            if (!result.IsSucceeded)
             {
-                if (result.Message.Contains("not found"))
+                if (result.Message!.Contains("not found"))
                     return NotFound(new { message = result.Message });
                 if (result.Message.Contains("permission"))
                     return Forbid();

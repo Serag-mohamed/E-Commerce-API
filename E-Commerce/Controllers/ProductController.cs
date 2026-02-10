@@ -10,23 +10,17 @@ namespace E_Commerce.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class ProductController(ProductService service) : ControllerBase
     {
-        private readonly ProductService _service;
-        private string _userId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        private bool _isAdmin => User.IsInRole("Admin");
-
-        public ProductController(ProductService service)
-        {
-            _service = service;
-        }
+        private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        private bool IsAdmin => User.IsInRole("Admin");
 
         [AllowAnonymous]
         [HttpGet] 
         public async Task<ActionResult> GetAll([FromQuery]int pageNumber = 1 , [FromQuery]int pageSize = 20)
         {
 
-            var products = await _service.GetAll(pageNumber, pageSize);
+            var products = await service.GetAll(pageNumber, pageSize);
 
             return Ok(products); 
         }
@@ -35,7 +29,7 @@ namespace E_Commerce.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> GetById(Guid id)
         {
-            var product = await _service.GetProductInfoByIdAsync(id);
+            var product = await service.GetProductInfoByIdAsync(id);
             if (product is null) 
                 return NotFound();
             return Ok(product);
@@ -45,11 +39,11 @@ namespace E_Commerce.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> Add(InputProductDto productDto)
         {
-            var result = await _service.AddAsync(productDto, _userId);
-            if (!result.Succeeded)
+            var result = await service.AddAsync(productDto, UserId);
+            if (!result.IsSucceeded)
                 return BadRequest(new { message = result.Message });
 
-            var displayedProduct = await _service.GetProductInfoByIdAsync(result.Data!.Id);
+            var displayedProduct = await service.GetProductInfoByIdAsync(result.Data!.Id);
             if (displayedProduct == null) 
                 return NotFound();
 
@@ -60,9 +54,9 @@ namespace E_Commerce.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(Guid id, InputProductDto productDto)
         {
-            var result = await _service.UpdateAsync(id, productDto, _userId, _isAdmin);
+            var result = await service.UpdateAsync(id, productDto, UserId, IsAdmin);
 
-            if (!result.Succeeded)
+            if (!result.IsSucceeded)
             {
                 if (result.Message!.Contains("not found"))
                     return NotFound(new { message = result.Message });
@@ -80,8 +74,8 @@ namespace E_Commerce.Controllers
         [HttpDelete]
         public async Task<ActionResult> Delete(Guid id)
         {
-            var result = await _service.DeleteAsync(id, _userId, _isAdmin);
-            if (!result.Succeeded)
+            var result = await service.DeleteAsync(id, UserId, IsAdmin);
+            if (!result.IsSucceeded)
             {
                 if (result.Message!.Contains("not found"))
                     return NotFound(new { message = result.Message });

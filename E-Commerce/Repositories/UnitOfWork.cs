@@ -3,23 +3,19 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace E_Commerce.Repositories
 {
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork(AppDbContext context) : IUnitOfWork
     {
-        private readonly AppDbContext _context;
-        private Dictionary<string, object>? _repositories;  
-        public UnitOfWork(AppDbContext context)
-        {
-            _context = context;
-        }
+        private Dictionary<string, object>? _repositories;
+
         public IRepository<T> Repository<T>() where T : class
         {
-            _repositories ??= new Dictionary<string, object>();
+            _repositories ??= [];
 
             var type = typeof(T).Name;
 
             if (!_repositories.TryGetValue(type, out object? value))
             {
-                var repositoryInstance = new Repository<T>(_context);
+                var repositoryInstance = new Repository<T>(context);
                 value = repositoryInstance;
                 _repositories.Add(type, value);
             }
@@ -28,15 +24,15 @@ namespace E_Commerce.Repositories
         }
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
-            return await _context.Database.BeginTransactionAsync();
+            return await context.Database.BeginTransactionAsync();
         }
         public async Task<int> SaveChangesAsync()
         {
-            return await _context.SaveChangesAsync();
+            return await context.SaveChangesAsync();
         }
         public void Dispose()
         { 
-            _context.Dispose();
+            context.Dispose();
         }
     }
 }

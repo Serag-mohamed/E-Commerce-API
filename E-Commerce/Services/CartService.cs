@@ -1,5 +1,4 @@
-﻿using E_Commerce.DTOs;
-using E_Commerce.DTOs.InputDtos;
+﻿using E_Commerce.DTOs.InputDtos;
 using E_Commerce.DTOs.OutputDtos;
 using E_Commerce.Entities;
 using E_Commerce.Repositories;
@@ -7,18 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce.Services
 {
-    public class CartService
+    public class CartService(IUnitOfWork unitOfWork, ProductService productService)
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ProductService _productService;
-
-        private IRepository<Cart> Repository => _unitOfWork.Repository<Cart>();
-        private IRepository<CartItem> CartItemRepository => _unitOfWork.Repository<CartItem>();
-        public CartService(IUnitOfWork unitOfWork, ProductService productService)
-        {
-            _unitOfWork = unitOfWork;
-            _productService = productService;
-        }
+        private IRepository<Cart> Repository => unitOfWork.Repository<Cart>();
+        private IRepository<CartItem> CartItemRepository => unitOfWork.Repository<CartItem>();
 
         public async Task<OperationResult<CartDto>> GetCartAsync(string userId)
         {
@@ -29,7 +20,7 @@ namespace E_Commerce.Services
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
-                return new OperationResult<CartDto> { Succeeded = false, Message = "Cart not found." };
+                return new OperationResult<CartDto> { IsSucceeded = false, Message = "Cart not found." };
 
             var output = new CartDto
             {
@@ -46,16 +37,16 @@ namespace E_Commerce.Services
 
             return new OperationResult<CartDto>
             {
-                Succeeded = true,
+                IsSucceeded = true,
                 Data = output
             };
         }
         public async Task<OperationResult> AddToCartAsync(string userId, AddToCartDto cartDto)
         {
-            var productCount = await _productService.GetProductCountByIdAsync(cartDto.ProductId);
+            var productCount = await productService.GetProductCountByIdAsync(cartDto.ProductId);
 
             if (productCount == 0)
-                return new OperationResult { Succeeded = false, Message = "Product does not exist." };
+                return new OperationResult { IsSucceeded = false, Message = "Product does not exist." };
 
             var cart = await Repository.Query()
                 .Include(c => c.Items)
@@ -72,14 +63,14 @@ namespace E_Commerce.Services
             if (existingItem != null)
             {
                 if (productCount < (existingItem.Quantity + cartDto.Quantity))
-                    return new OperationResult { Succeeded = false, Message = $"Cannot add more items. Only {productCount} available in stock." };
+                    return new OperationResult { IsSucceeded = false, Message = $"Cannot add more items. Only {productCount} available in stock." };
 
                 existingItem.Quantity += cartDto.Quantity;
             }
             else
             {
                 if (productCount < cartDto.Quantity)
-                    return new OperationResult { Succeeded = false, Message = $"Insufficient stock. Only {productCount} available." };
+                    return new OperationResult { IsSucceeded = false, Message = $"Insufficient stock. Only {productCount} available." };
 
                 cart.Items.Add(new CartItem
                 {
@@ -89,8 +80,8 @@ namespace E_Commerce.Services
             }
 
             cart.UpdatedAt = DateTime.UtcNow;
-            await _unitOfWork.SaveChangesAsync();
-            return new OperationResult { Succeeded = true, Message = "Item added to cart successfully." };
+            await unitOfWork.SaveChangesAsync();
+            return new OperationResult { IsSucceeded = true, Message = "Item added to cart successfully." };
         }
         public async Task<OperationResult> UpdateCartAsync(string userId, AddToCartDto cartDto)
         {
@@ -98,16 +89,16 @@ namespace E_Commerce.Services
                 .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            var productCount = await _productService.GetProductCountByIdAsync(cartDto.ProductId);
+            var productCount = await productService.GetProductCountByIdAsync(cartDto.ProductId);
             if (productCount == 0)
-                return new OperationResult { Succeeded = false, Message = "Product does not exist." };
+                return new OperationResult { IsSucceeded = false, Message = "Product does not exist." };
             if (productCount < cartDto.Quantity)
-                return new OperationResult { Succeeded = false, Message = $"Sorry, only {productCount} units are available in stock." };
+                return new OperationResult { IsSucceeded = false, Message = $"Sorry, only {productCount} units are available in stock." };
 
             if (cart == null)
             {
                 await AddToCartAsync(userId, cartDto);
-                return new OperationResult { Succeeded = true, Message = "Cart created and item added successfully." };
+                return new OperationResult { IsSucceeded = true, Message = "Cart created and item added successfully." };
             }
             var existingItem = cart.Items!.FirstOrDefault(i => i.ProductId == cartDto.ProductId);
             if (existingItem != null)
@@ -118,12 +109,12 @@ namespace E_Commerce.Services
                 {
                     existingItem.Quantity = cartDto.Quantity;
                     cart.UpdatedAt = DateTime.UtcNow;
-                    await _unitOfWork.SaveChangesAsync();
+                    await unitOfWork.SaveChangesAsync();
                 }
 
-                return new OperationResult { Succeeded = true, Message = "Cart updated successfully." };
+                return new OperationResult { IsSucceeded = true, Message = "Cart updated successfully." };
             }
-            return new OperationResult { Succeeded = false, Message = "Product not found in cart." };
+            return new OperationResult { IsSucceeded = false, Message = "Product not found in cart." };
         }
 
         public async Task<OperationResult> RemoveFromCartAsync(string userId, Guid cartItemId)
@@ -134,7 +125,7 @@ namespace E_Commerce.Services
                 .FirstOrDefaultAsync(i => i.Id == cartItemId);
 
             if (item == null)
-                return new OperationResult { Succeeded = false, Message = "Item not found in cart." };
+                return new OperationResult { IsSucceeded = false, Message = "Item not found in cart." };
 
             CartItemRepository.Delete(item);
 
@@ -142,9 +133,9 @@ namespace E_Commerce.Services
             if (cart != null)
                 cart.UpdatedAt = DateTime.UtcNow;
 
-            await _unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync();
 
-            return new OperationResult { Succeeded = true, Message = "Item removed from cart successfully." };
+            return new OperationResult { IsSucceeded = true, Message = "Item removed from cart successfully." };
         }
         public async Task<OperationResult> DeleteCartAsync(string userId)
         {
@@ -152,11 +143,11 @@ namespace E_Commerce.Services
                 .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
             if (cart == null)
-                return new OperationResult { Succeeded = false, Message = "Cart not found." };
+                return new OperationResult { IsSucceeded = false, Message = "Cart not found." };
             CartItemRepository.RemoveRange(cart.Items);
             Repository.Delete(cart);
-            await _unitOfWork.SaveChangesAsync();
-            return new OperationResult { Succeeded = true, Message = "Cart deleted successfully." };
+            await unitOfWork.SaveChangesAsync();
+            return new OperationResult { IsSucceeded = true, Message = "Cart deleted successfully." };
         }
     }
 }

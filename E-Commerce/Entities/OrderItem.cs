@@ -6,12 +6,12 @@ namespace E_Commerce.Entities
     { 
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid OrderId { get; set; }
-        public Guid ProductId { get; set; }
-        public int Quantity { get; set; }
-        public decimal PriceAtPurchase { get; set; }
+        public required Guid ProductId { get; set; }
+        public required int Quantity { get; set; }
+        public required decimal PriceAtPurchase { get; set; }
 
-        public Order Order { get; set; }
-        public Product Product { get; set; }
+        public Order Order { get; set; } = null!;
+        public Product Product { get; set; } = null!;
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
 

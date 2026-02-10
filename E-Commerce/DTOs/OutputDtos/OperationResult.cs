@@ -1,10 +1,10 @@
-﻿namespace E_Commerce.DTOs
+﻿namespace E_Commerce.DTOs.OutputDtos
 {
     public class OperationResult
     {
-        public bool Succeeded { get; set; }
+        public bool IsSucceeded { get; set; }
         public string? Message { get; set; }
-        public List<string> Errors { get; set; } = new();
+        public List<string> Errors { get; set; } = [];
 
     }
 

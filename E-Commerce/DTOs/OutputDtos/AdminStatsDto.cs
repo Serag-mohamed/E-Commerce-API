@@ -1,4 +1,6 @@
-﻿namespace E_Commerce.DTOs.OutputDtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace E_Commerce.DTOs.OutputDtos
 {
     public class AdminStatsDto
     {

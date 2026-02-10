@@ -7,10 +7,8 @@ using System.Linq.Expressions;
 
 namespace E_Commerce.Data
 {
-    public class AppDbContext: IdentityDbContext<ApplicationUser>
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<Category> Categories { get; set; }

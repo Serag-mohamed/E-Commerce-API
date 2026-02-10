@@ -1,30 +1,22 @@
-﻿using E_Commerce.DTOs;
-using E_Commerce.DTOs.InputDtos;
+﻿using E_Commerce.DTOs.InputDtos;
 using E_Commerce.DTOs.OutputDtos;
 using E_Commerce.Entities;
 using E_Commerce.Repositories;
 using Microsoft.EntityFrameworkCore;
 namespace E_Commerce.Services
 {
-    public class ProductService
+    public class ProductService(IUnitOfWork unitOfWork)
     {
-        private readonly IUnitOfWork _unitOfWork;
-
-        private IRepository<Product> Repository => _unitOfWork.Repository<Product>();
-        private IRepository<ProductImage> ImageRepository => _unitOfWork.Repository<ProductImage>();
-        private IRepository<Category> CategoryRepository => _unitOfWork.Repository<Category>();
-        private IRepository<CartItem> CartItemRepo => _unitOfWork.Repository<CartItem>();
-
-        public ProductService(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
-        }
+        private IRepository<Product> Repository => unitOfWork.Repository<Product>();
+        private IRepository<ProductImage> ImageRepository => unitOfWork.Repository<ProductImage>();
+        private IRepository<Category> CategoryRepository => unitOfWork.Repository<Category>();
+        private IRepository<CartItem> CartItemRepo => unitOfWork.Repository<CartItem>();
 
         public async Task<OperationResult<Product>> AddAsync(InputProductDto productDto, string userId)
         {
             var result = ValidateImages(productDto.Images);
-            if (!result.Succeeded)
-                return new OperationResult<Product> { Succeeded = false, Message = result.Message };
+            if (!result.IsSucceeded)
+                return new OperationResult<Product> { IsSucceeded = false, Message = result.Message };
 
             var existingProduct = await Repository.Query()
                 .IgnoreQueryFilters()
@@ -51,17 +43,17 @@ namespace E_Commerce.Services
                         IsMain = img.IsMain
                     }).ToList();
 
-                    await _unitOfWork.SaveChangesAsync();
+                    await unitOfWork.SaveChangesAsync();
 
                     return new OperationResult<Product>
                     {
-                        Succeeded = true,
+                        IsSucceeded = true,
                         Message = "Product restored and updated successfully",
                         Data = existingProduct
                     };
                 }
 
-                return new OperationResult<Product> { Succeeded = false, Message = "Product already exists." };
+                return new OperationResult<Product> { IsSucceeded = false, Message = "Product already exists." };
             }
 
             Product product = new ()
@@ -81,22 +73,22 @@ namespace E_Commerce.Services
             };
 
             await Repository.AddAsync(product);
-            await _unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync();
 
-            return new OperationResult<Product> { Succeeded = true, Data = product };
+            return new OperationResult<Product> { IsSucceeded = true, Data = product };
         }
 
         public async Task<OperationResult> UpdateAsync(Guid id, InputProductDto productDto, string userId, bool isAdmin)
         {
             var result = ValidateImages(productDto.Images);
-            if (!result.Succeeded)
+            if (!result.IsSucceeded)
                 return result;
 
             var IsExistsCategory = await CategoryRepository.GetByIdAsync(productDto.CategoryId);
             if (IsExistsCategory == null)
                 return new OperationResult
                 {
-                    Succeeded = false,
+                    IsSucceeded = false,
                     Message = $"Category with ID {productDto.CategoryId} was not found."
                 };
 
@@ -104,12 +96,12 @@ namespace E_Commerce.Services
             if (product == null)
                 return new OperationResult
                 {
-                    Succeeded = false,
+                    IsSucceeded = false,
                     Message = $"Product with ID {id} was not found."
                 };
 
             if (!isAdmin && product.VendorId != userId)
-                return new OperationResult { Succeeded = false, Message = "Forbidden: You are not the owner of this product." };
+                return new OperationResult { IsSucceeded = false, Message = "Forbidden: You are not the owner of this product." };
 
             product.Name = productDto.Name;
             product.Description = productDto.Description;
@@ -129,9 +121,9 @@ namespace E_Commerce.Services
             }).ToList();
 
             Repository.Update(product);
-            await _unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync();
 
-            return new OperationResult { Succeeded = true };
+            return new OperationResult { IsSucceeded = true };
         }
 
         public async Task<OperationResult> DeleteAsync(Guid id, string userId, bool isAdmin)
@@ -140,22 +132,22 @@ namespace E_Commerce.Services
             if (product == null)
                 return new OperationResult
                 {
-                    Succeeded = false,
+                    IsSucceeded = false,
                     Message = $"Product with ID {id} was not found."
                 };
 
             if (product.VendorId != userId && !isAdmin)
                 return new OperationResult
                 {
-                    Succeeded = false,
+                    IsSucceeded = false,
                     Message = "Forbidden: You don't have permission to delete this product."
                 };
             Repository.Delete(product);
             var cartItems = await CartItemRepo.Query().Where(ci => ci.ProductId == id).ToListAsync();
             CartItemRepo.RemoveRange(cartItems);
-            await _unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync();
 
-            return new OperationResult { Succeeded = true };
+            return new OperationResult { IsSucceeded = true };
 
         }
         private static OperationResult ValidateImages(IEnumerable<InputProductImageDto> imgsDto)
@@ -164,15 +156,15 @@ namespace E_Commerce.Services
             var totalImages = imgsDto.Count();
 
             if (totalImages == 0)
-                return new OperationResult { Succeeded = false, Message = "Product must have at least one image." };
+                return new OperationResult { IsSucceeded = false, Message = "Product must have at least one image." };
 
             if (mainImagesCount == 0)
-                return new OperationResult { Succeeded = false, Message = "Product must have a main image." };
+                return new OperationResult { IsSucceeded = false, Message = "Product must have a main image." };
 
             if (mainImagesCount > 1)
-                return new OperationResult { Succeeded = false, Message = "Only one main image is allowed." };
+                return new OperationResult { IsSucceeded = false, Message = "Only one main image is allowed." };
 
-            return new OperationResult { Succeeded = true };
+            return new OperationResult { IsSucceeded = true };
         }
 
         public async Task<OutputProductDto?> GetProductInfoByIdAsync(Guid id)

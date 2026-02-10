@@ -1,5 +1,4 @@
-﻿using E_Commerce.DTOs;
-using E_Commerce.DTOs.InputDtos;
+﻿using E_Commerce.DTOs.InputDtos;
 using E_Commerce.DTOs.OutputDtos;
 using E_Commerce.Entities;
 using E_Commerce.Services;
@@ -11,20 +10,13 @@ namespace E_Commerce.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    public class CategoryController(CategoryService categoryService) : ControllerBase
     {
-        private readonly CategoryService _service;
-
-        public CategoryController(CategoryService categoryService)
-        {
-            _service = categoryService;
-        }
-
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<List<OutputCategoryDto>>> GetAll()
         {
-            var categories = await _service.GetAllAsync();
+            var categories = await categoryService.GetAllAsync();
             if (categories is null || categories.Count == 0)
                 return NoContent();
             return Ok(categories);
@@ -34,7 +26,7 @@ namespace E_Commerce.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<OutputCategoryDto>> GetById(Guid id)
         {
-            var category = await _service.GetCategoryInfoByIdAsync(id);
+            var category = await categoryService.GetCategoryInfoByIdAsync(id);
             if (category is null)
                 return NotFound(new { Message = "Category not found" });
 
@@ -46,8 +38,8 @@ namespace E_Commerce.Controllers
         public async Task<ActionResult<OperationResult<CategoryWithProductsDto>>> GetProductsByCategoryId(Guid id, int pageNumber = 1, int pageSize = 20)
         {
             
-            var result = await _service.GetProductsByCategoryIdAsync(id, pageNumber, pageSize);
-            if (!result.Succeeded)
+            var result = await categoryService.GetProductsByCategoryIdAsync(id, pageNumber, pageSize);
+            if (!result.IsSucceeded)
                 return NoContent();
             return Ok(result.Data);
         }
@@ -56,8 +48,8 @@ namespace E_Commerce.Controllers
         [HttpPost]
         public async Task<ActionResult<Category>> Add(InputCategoryDto categoryDto)
         {
-            var result = await _service.AddAsync(categoryDto);
-            if (!result.Succeeded)
+            var result = await categoryService.AddAsync(categoryDto);
+            if (!result.IsSucceeded)
                 return BadRequest(new { message = result.Message });
 
             return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data);
@@ -67,8 +59,8 @@ namespace E_Commerce.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<Category>> Update(Guid id, OutputCategoryDto categoryDto)
         {
-            var result = await _service.UpdateAsync(id, categoryDto);
-            if (!result.Succeeded)
+            var result = await categoryService.UpdateAsync(id, categoryDto);
+            if (!result.IsSucceeded)
                 return BadRequest(new { Message = result.Message });
             return NoContent();
         }
@@ -77,8 +69,8 @@ namespace E_Commerce.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(Guid id)
         {
-            var result = await _service.DeleteAsync(id);
-            if (!result.Succeeded)
+            var result = await categoryService.DeleteAsync(id);
+            if (!result.IsSucceeded)
                 return NotFound(new { Message = result.Message });
             return NoContent();
             
