@@ -8,7 +8,7 @@ namespace E_Commerce.Services
 {
     public class AccountService(UserManager<ApplicationUser> userManager, AuthService authService)
     {
-        public async Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto)
+        public async Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto, string role)
         {
             if (await userManager.FindByEmailAsync(registerDto.UserName) is not null)
                 return new AuthResponseDto { Message = "Username is already registered" };
@@ -24,7 +24,7 @@ namespace E_Commerce.Services
             if (!result.Succeeded)
                 return new AuthResponseDto { Message = string.Join(", ", result.Errors.Select(e => e.Description)) };
 
-            await userManager.AddToRoleAsync(user, "Customer");
+            await userManager.AddToRoleAsync(user, role);
 
             var token = await authService.GenerateTokenAsync(user);
             var refreshToken = authService.GenerateRefreshToken(user.Id);

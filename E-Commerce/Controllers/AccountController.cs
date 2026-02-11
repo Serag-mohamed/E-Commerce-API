@@ -1,5 +1,6 @@
 ﻿using E_Commerce.DTOs.InputDtos;
 using E_Commerce.DTOs.OutputDtos;
+using E_Commerce.Enums;
 using E_Commerce.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,13 @@ namespace E_Commerce.Controllers
     [ApiController]
     public class AccountController(AccountService service) : ControllerBase
     {
-        [HttpPost("Register")]
-        public async Task<ActionResult> Register([FromBody] RegisterDto registerDto)
+        [HttpPost("register/{role}")]
+        public async Task<ActionResult> Register(UserRole role, [FromBody] RegisterDto registerDto)
         {
-            var result = await service.RegisterAsync(registerDto);
+            if (role is not ( UserRole.Customer or UserRole.Vendor ))
+                return BadRequest("Invalid role specified. Only Customer or Vendor roles are allowed.");
+
+            var result = await service.RegisterAsync(registerDto, role.ToString());
             if (!result.IsAuthenticated)
                 return BadRequest(result.Message);
 
@@ -22,7 +26,18 @@ namespace E_Commerce.Controllers
             return Ok(result);
         }
 
-        [HttpPost("Login")]
+        [HttpPost("register/admin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> RegisterAdmin([FromBody] RegisterDto registerDto)
+        {
+            var result = await service.RegisterAsync(registerDto, UserRole.Admin.ToString());
+            if (!result.IsAuthenticated)
+                return BadRequest(result.Message); 
+
+            return Ok(result);
+        }
+
+        [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginDto loginDto)
         {
             var result = await service.LoginAsync(loginDto);

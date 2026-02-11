@@ -5,6 +5,7 @@ using E_Commerce.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using Scalar.AspNetCore;
 
 namespace E_Commerce
 {
