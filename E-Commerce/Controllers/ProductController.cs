@@ -37,7 +37,7 @@ namespace E_Commerce.Controllers
 
         [Authorize(Roles = "Admin,Vendor")]
         [HttpPost]
-        public async Task<ActionResult<Product>> Add(InputProductDto productDto)
+        public async Task<ActionResult<Product>> Add([FromForm] InputProductDto productDto)
         {
             var result = await service.AddAsync(productDto, UserId);
             if (!result.IsSucceeded)

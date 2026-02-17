@@ -5,15 +5,15 @@ namespace E_Commerce.Entities
     public class Product : ISoftDeleteable
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public required string Name { get; set; } = null!;
-        public required string Description { get; set; } = null!;
-        public required decimal Price { get; set; }
+        public string Name { get; set; } = null!;
+        public string Description { get; set; } = null!;
+        public decimal Price { get; set; }
         public decimal SalePrice { get; set; } = 0;
         public decimal FinalPrice => SalePrice > 0 ? SalePrice : Price;
-        public required int Quantity { get; set; }
+        public int Quantity { get; set; }
         public int TotalSalesCount { get; set; } = 0;
-        public required Guid CategoryId { get; set; }
-        public required string VendorId { get; set; } = null!;
+        public Guid CategoryId { get; set; }
+        public string VendorId { get; set; } = null!;
 
         public Category Category { get; set; } = null!;
         public ApplicationUser Vendor { get; set; } = null!;

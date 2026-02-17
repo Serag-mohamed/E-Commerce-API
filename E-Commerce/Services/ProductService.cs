@@ -5,7 +5,7 @@ using E_Commerce.Repositories;
 using Microsoft.EntityFrameworkCore;
 namespace E_Commerce.Services
 {
-    public class ProductService(IUnitOfWork unitOfWork)
+    public class ProductService(IUnitOfWork unitOfWork, IWebHostEnvironment env)
     {
         private IRepository<Product> Repository => unitOfWork.Repository<Product>();
         private IRepository<ProductImage> ImageRepository => unitOfWork.Repository<ProductImage>();
@@ -23,25 +23,18 @@ namespace E_Commerce.Services
                 .Include(p => p.ProductImages)
                 .FirstOrDefaultAsync(p => p.Name == productDto.Name && p.VendorId == userId);
 
+            var mapResult = new OperationResult<Product>();
+
             if (existingProduct != null)
             {
                 if (existingProduct.IsDeleted)
                 {
-                    existingProduct.IsDeleted = false;
-                    existingProduct.DeletedAt = null;
+                     mapResult = await MapToProductAsync(productDto, userId, existingProduct, true);
 
-                    existingProduct.Description = productDto.Description;
-                    existingProduct.Price = productDto.Price;
-                    existingProduct.SalePrice = productDto.SalePrice;
-                    existingProduct.Quantity = productDto.Quantity;
-                    existingProduct.CategoryId = productDto.CategoryId;
+                    if (!mapResult.IsSucceeded)
+                        return new OperationResult<Product> { IsSucceeded = false, Message = mapResult.Message };
 
-                    ImageRepository.RemoveRange(existingProduct.ProductImages);
-                    existingProduct.ProductImages = productDto.Images.Select(img => new ProductImage
-                    {
-                        ImageUrl = img.ImageUrl,
-                        IsMain = img.IsMain
-                    }).ToList();
+                    existingProduct = mapResult.Data!;
 
                     await unitOfWork.SaveChangesAsync();
 
@@ -56,28 +49,18 @@ namespace E_Commerce.Services
                 return new OperationResult<Product> { IsSucceeded = false, Message = "Product already exists." };
             }
 
-            Product product = new ()
-            {
-                Name = productDto.Name,
-                Description = productDto.Description,
-                VendorId = userId,
-                Price = productDto.Price,
-                SalePrice = productDto.SalePrice,
-                Quantity = productDto.Quantity,
-                CategoryId = productDto.CategoryId,
-                ProductImages = productDto.Images.Select(img => new ProductImage()
-                {
-                    ImageUrl = img.ImageUrl,
-                    IsMain = img.IsMain
-                }).ToList()
-            };
+            var product = new Product();
+            mapResult = await MapToProductAsync(productDto, userId, product);
+            if (!mapResult.IsSucceeded)
+                return new OperationResult<Product> { IsSucceeded = false, Message = mapResult.Message };
+
+            product = mapResult.Data!;
 
             await Repository.AddAsync(product);
             await unitOfWork.SaveChangesAsync();
 
             return new OperationResult<Product> { IsSucceeded = true, Data = product };
         }
-
         public async Task<OperationResult> UpdateAsync(Guid id, InputProductDto productDto, string userId, bool isAdmin)
         {
             var result = ValidateImages(productDto.Images);
@@ -103,23 +86,11 @@ namespace E_Commerce.Services
             if (!isAdmin && product.VendorId != userId)
                 return new OperationResult { IsSucceeded = false, Message = "Forbidden: You are not the owner of this product." };
 
-            product.Name = productDto.Name;
-            product.Description = productDto.Description;
-            product.Price = productDto.Price;
-            product.SalePrice = productDto.SalePrice;
-            product.Quantity = productDto.Quantity;
-            product.CategoryId = productDto.CategoryId;
+            var mapResult = await MapToProductAsync(productDto, userId, product);
+            if (!mapResult.IsSucceeded)
+                return new OperationResult { IsSucceeded = false, Message = mapResult.Message };
 
-            if (product.ProductImages.Any())
-                ImageRepository.RemoveRange(product.ProductImages);
-
-            product.ProductImages = productDto.Images.Select(img => new ProductImage
-            {
-                ImageUrl = img.ImageUrl,
-                IsMain = img.IsMain,
-                ProductId = id
-            }).ToList();
-
+            product = mapResult.Data!;
             Repository.Update(product);
             await unitOfWork.SaveChangesAsync();
 
@@ -150,8 +121,83 @@ namespace E_Commerce.Services
             return new OperationResult { IsSucceeded = true };
 
         }
+        
+        private async Task<OperationResult<Product>> MapToProductAsync(InputProductDto productDto, string vendorId, Product product, bool isDeleted = false)
+        {
+            
+            if (isDeleted)
+            {
+                product.IsDeleted = false;
+                product.DeletedAt = null;
+            }
+
+
+            product.Name = productDto.Name;
+            product.Description = productDto.Description;
+            product.Price = productDto.Price;
+            product.SalePrice = productDto.SalePrice;
+            product.Quantity = productDto.Quantity;
+            product.CategoryId = productDto.CategoryId;
+            product.VendorId = vendorId;
+
+            if (product.ProductImages.Count > 0)
+                ImageRepository.RemoveRange(product.ProductImages);
+
+            try
+            {
+                var imageTasks = productDto.Images.Select(img => HandleProductImageAsync(img, product.Id)).ToList();
+                var images = await Task.WhenAll(imageTasks); 
+                product.ProductImages = images.ToList();
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult<Product> { IsSucceeded = false, Errors = [ex.Message] };
+            }
+
+
+
+            return new OperationResult<Product>
+            {
+                IsSucceeded = true,
+                Data = product
+            };
+            
+        }
+        private async Task<ProductImage> HandleProductImageAsync(InputProductImageDto imgDto, Guid? productId = null)
+        {   
+            var extension = Path.GetExtension(imgDto.ImageFile.FileName).ToLower();
+            var imageName = Guid.NewGuid().ToString() + extension;
+            var uploadFolder = Path.Combine(env.WebRootPath, "Images");
+
+            if (!Directory.Exists(uploadFolder))
+                Directory.CreateDirectory(uploadFolder);
+
+            var filePath = Path.Combine(uploadFolder, imageName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imgDto.ImageFile.CopyToAsync(stream);
+            }
+
+            if (productId.HasValue)
+            {
+                return new ProductImage
+                {
+                    ImageUrl = imageName,
+                    IsMain = imgDto.IsMain,
+                    ProductId = productId.Value
+                };
+            }
+
+            return new ProductImage
+            {
+                ImageUrl = imageName,
+                IsMain = imgDto.IsMain
+            };
+        }
+      
         private static OperationResult ValidateImages(IEnumerable<InputProductImageDto> imgsDto)
         {
+            
             var mainImagesCount = imgsDto.Count(i => i.IsMain);
             var totalImages = imgsDto.Count();
 
@@ -164,6 +210,15 @@ namespace E_Commerce.Services
             if (mainImagesCount > 1)
                 return new OperationResult { IsSucceeded = false, Message = "Only one main image is allowed." };
 
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            foreach (var img in imgsDto)
+            {
+                if (!allowedExtensions.Contains(Path.GetExtension(img.ImageFile.FileName).ToLower()))
+                {
+                    return new OperationResult { IsSucceeded = false, Message = $"The file '{img.ImageFile.FileName}' is invalid. Allowed formats are: .jpg, .jpeg, .png, .gif" };
+                }   
+            }
+            
             return new OperationResult { IsSucceeded = true };
         }
 

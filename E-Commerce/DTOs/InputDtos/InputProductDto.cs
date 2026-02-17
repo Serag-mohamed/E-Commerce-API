@@ -22,7 +22,7 @@ namespace E_Commerce.DTOs.InputDtos
     public class InputProductImageDto
     {
         [Required]
-        public string ImageUrl { get; set; } = null!;
+        public IFormFile ImageFile {get; set;} = null!;
         public bool IsMain { get; set; }
     }
 }
